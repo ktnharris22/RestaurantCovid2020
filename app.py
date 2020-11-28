@@ -1,3 +1,5 @@
+import json
+
 mapbox_access_token = 'pk.eyJ1IjoiamFzcmljbyIsImEiOiJjaXc2dHQyeTEwMDNpMnRwMm1wNXZnZHhzIn0.OoPNn5cuLVnaUlrfTiQboQ'
 
 import pandas as pd
@@ -7,6 +9,7 @@ import dash_table
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
+import requests
 
 import plotly.offline as py  # (version 4.4.1)
 import plotly.graph_objs as go
@@ -93,13 +96,19 @@ app.layout = html.Div([
 # Output of Graph
 @app.callback(Output('graph', 'figure'),
               [Input('zip_name', 'value'),
-               Input('restaurant_type', 'value')]
-            )
-
-def update_figure(chosen_zip, chosen_description):
+               Input('restaurant_type', 'value')],
+              Input('Address', 'value')
+              )
+def update_figure(chosen_zip, chosen_description,input_address):
     df_sub = df[(df['zip'].isin(chosen_zip)) &
                 (df['description'].isin(chosen_description))]
-
+    zoom_address = input_address.replace(' ', '%20') if type(input_address) == str else '5000%20Forbes%20Ave.%20Pittsburgh,%20PA'
+    url = f"https://api.mapbox.com/geocoding/v5/mapbox.places/{zoom_address}.json?access_token={mapbox_access_token}"
+    response = requests.get(url)
+    data_json = response.json()
+    coordinates = data_json['features'][0]['geometry']['coordinates']
+    long = coordinates[0]
+    lat = coordinates[1]
     # Create figure
     locations = [go.Scattermapbox(
         lon=df_sub['longitude'],
@@ -127,11 +136,11 @@ def update_figure(chosen_zip, chosen_description):
                 bearing=25,
                 style='light',
                 center=dict(
-                    lat=40.440624,
-                    lon=-79.99588
+                    lat=lat,
+                    lon=long
                 ),
                 pitch=40,
-                zoom=11.5
+                zoom=15
             ),
         )
     }
@@ -142,7 +151,6 @@ def update_figure(chosen_zip, chosen_description):
 @app.callback(
     Output('web_link', 'children'),
     [Input('graph', 'clickData')])
-
 def display_click_data(clickData):
     if clickData is None:
         return 'Click on any bubble'
