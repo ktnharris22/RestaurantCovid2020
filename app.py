@@ -14,7 +14,7 @@ import requests
 import plotly.offline as py  # (version 4.4.1)
 import plotly.graph_objs as go
 
-df = pd.read_csv("geofoodfacilities.csv")
+df = pd.read_csv("geofoodfac_color.csv")
 df = df[df['city'] == 'Pittsburgh']
 
 app = dash.Dash(__name__)
@@ -34,7 +34,7 @@ app.layout = html.Div([
                                                                               'list-style': 'none',
                                                                               'text-indent': '17px',
                                                                               'white-space': 'nowrap'}),
-                html.Li("Delivers", className='circle', style={'background': '#FF0000', 'color': 'black',
+                html.Li("You Are Here", className='circle', style={'background': '#FF0000', 'color': 'black',
                                                                'list-style': 'none', 'text-indent': '17px'}),
                 html.Li("Warning", className='circle', style={'background': '#00ff00', 'color': 'black',
                                                               'list-style': 'none', 'text-indent': '17px'}),
@@ -42,7 +42,7 @@ app.layout = html.Div([
             ], style={'border-bottom': 'solid 3px', 'border-color': '#00FC87', 'padding-top': '6px'}
             ),
 
-            #
+            #zip
             html.Label(children=['zip: '], style=blackbold),
             dcc.Checklist(id='zip_name',
                           options=[{'label': str(b), 'value': b} for b in sorted(df['zip'].unique())],
@@ -97,8 +97,7 @@ app.layout = html.Div([
 @app.callback(Output('graph', 'figure'),
               [Input('zip_name', 'value'),
                Input('restaurant_type', 'value')],
-              Input('Address', 'value')
-              )
+              Input('Address', 'value'))
 def update_figure(chosen_zip, chosen_description,input_address):
     df_sub = df[(df['zip'].isin(chosen_zip)) &
                 (df['description'].isin(chosen_description))]
@@ -109,18 +108,21 @@ def update_figure(chosen_zip, chosen_description,input_address):
     coordinates = data_json['features'][0]['geometry']['coordinates']
     long = coordinates[0]
     lat = coordinates[1]
+    df_sub = df.append({'longitude':long, 'latitude':lat, 'color':'#FF0000'}, ignore_index = True)
+
     # Create figure
     locations = [go.Scattermapbox(
         lon=df_sub['longitude'],
         lat=df_sub['latitude'],
         mode='markers',
-        # marker={'color': df_sub['color']},
+        marker={'color': df_sub['color']},
         unselected={'marker': {'opacity': 1}},
         selected={'marker': {'opacity': 0.5, 'size': 25}},
         # hoverinfo='text',
         # hovertext=df_sub['hov_txt'],
         # customdata=df_sub['website']
     )]
+
 
     # Return figure
     return {
@@ -144,7 +146,6 @@ def update_figure(chosen_zip, chosen_description,input_address):
             ),
         )
     }
-
 
 # ---------------------------------------------------------------
 # callback for Web_link
