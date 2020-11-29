@@ -108,7 +108,7 @@ def main():
     print(accordionYearData2.prettify())
     
     restaurantData = accordionYearData.find("<tr>") #searches in HTML file for the detail information
-    
+    a=3
     #calls program that prints out current weather condition information
 
 if __name__ == '__main__': 
