@@ -70,18 +70,25 @@ def parseData(beautifulSoupList):
         rawParameter = str(beautifulSoupList[i])
         #checking to ensure that the rawparameter isn't heading information
         if rawParameter.find(headerKeyWord) == -1:
+            lst=[]
             for j in range(len(tagParamList)):
                 startT = tagParamList[j][1]
                 endT = tagParamList[j][2]
                 temp = clip(rawParameter,startT,endT)
-                
+                #print(startT)
+                #print(endT)
+                if len(temp)!=0:
+                    #print(temp.rstrip())
+                    lst.append(temp.rstrip())
+            print(lst)
+                    #print(type(temp))
                 #Dhruva to create desired structure to input into larger data frame
                 #tagParamList[j][0] 'Name' key
                 #temp 'Name Data'
                 
                 
     
-    dataStruct = dict()
+    #dataStruct = dict()
     
 def main():
     
@@ -104,11 +111,11 @@ def main():
     #x2=accordionYearData2.find_all('</i>')
 
 
-    print(accordionYearData.prettify())
-    print(accordionYearData2.prettify())
+    #print(accordionYearData.prettify())
+    #print(accordionYearData2.prettify())
     
     restaurantData = accordionYearData.find("<tr>") #searches in HTML file for the detail information
-    a=3
+    
     #calls program that prints out current weather condition information
 
 if __name__ == '__main__': 
