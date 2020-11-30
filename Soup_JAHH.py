@@ -20,21 +20,33 @@ import numpy as np
 #Function that clips desired data from string of data and returns string
 #Calls clean function with removes line breaks and unnecessary spaces at start or ned of string.
 def clip(stringData,startTag, endTag):
-    sIndex = stringData.find(startTag)
-    eIndex = stringData.find(endTag)
-    temp = stringData[sIndex + len(startTag):eIndex]
-    clippedData = cleanUp(temp)
+    clippedData = 'dataNotclipped'
+    
+    if startTag == endTag:
+        sIndex = stringData.find(startTag)
+        eIndex = stringData.find(endTag,sIndex+1)
+        temp = stringData[sIndex + len(startTag):eIndex]
+        clippedData = cleanUp(temp)
+    
+  
+    else:    
+        sIndex = stringData.find(startTag)
+        eIndex = stringData.find(endTag)
+        temp = stringData[sIndex + len(startTag):eIndex]
+        clippedData = cleanUp(temp)
+    
     return clippedData
 
 #Function that cleans data strings given a pre-set list of "fillers"
 def cleanUp (stringData):
-    newData = stringData
-    fillerZ = ['\r\n']
+    newData = stringData.strip()
+    fillerZ = ['\r\n', '<br/>', '</p>']
     for i in range(len(fillerZ)):
         cleanIndex = newData.find(fillerZ[i])
         if cleanIndex != -1: #checks to see if the specific filler is a part of the substring of data
             lenFiller = len(fillerZ[i])
-            newData = newData[0:cleanIndex+lenFiller].strip() + ' ' + newData[cleanIndex+lenFiller:].strip()
+            newData = newData[0:cleanIndex].strip() + ' ' + newData[cleanIndex+lenFiller:].strip()
+            newData.strip()
     return newData #type string
 
 #Function that takes in beautifulSouplList and parses data into a usable data struct for further processing
@@ -56,10 +68,10 @@ def parseData(beautifulSoupList):
     tagBoro_e = '</p>'
     
     tagPDate_s = 'Posted: '
-    tagpDate_e = '<br/>'
+    tagpDate_e = '<br/>R'
     
     tagPRem_s = 'Removed:'
-    tagPRem_e = '</p>'
+    tagPRem_e = '</p>\n<p>V'
     
     tagViol_s = 'Violation:<br/>' #violation tag
     tagViol_e = '</p>\n</td>\n</tr>'
@@ -70,11 +82,12 @@ def parseData(beautifulSoupList):
         rawParameter = str(beautifulSoupList[i])
         #checking to ensure that the rawparameter isn't heading information
         if rawParameter.find(headerKeyWord) == -1:
+            print('\n')
+
             for j in range(len(tagParamList)):
-                startT = tagParamList[j][1]
-                endT = tagParamList[j][2]
-                temp = clip(rawParameter,startT,endT)
+                temp = clip(rawParameter,tagParamList[j][1],tagParamList[j][2])
                 
+                print(tagParamList[j][0] +': ' + temp)
                 #Dhruva to create desired structure to input into larger data frame
                 #tagParamList[j][0] 'Name' key
                 #temp 'Name Data'
@@ -101,13 +114,13 @@ def main():
     
     data = parseData(accordionYearList)
     
-    #x2=accordionYearData2.find_all('</i>')
+#    #x2=accordionYearData2.find_all('</i>')
 
 
-    print(accordionYearData.prettify())
-    print(accordionYearData2.prettify())
+#    print(accordionYearData.prettify())
+#    print(accordionYearData2.prettify())
     
-    restaurantData = accordionYearData.find("<tr>") #searches in HTML file for the detail information
+#    restaurantData = accordionYearData.find("<tr>") #searches in HTML file for the detail information
     
     #calls program that prints out current weather condition information
 
