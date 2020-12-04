@@ -136,12 +136,12 @@ def update_figure(chosen_zip, chosen_description,input_address):
             mapbox=dict(
                 accesstoken=mapbox_access_token,
                 bearing=25,
-                style='light',
+                style='satellite-streets',
                 center=dict(
                     lat=lat,
                     lon=long
                 ),
-                pitch=40,
+                pitch=0,
                 zoom=15
             ),
         )
