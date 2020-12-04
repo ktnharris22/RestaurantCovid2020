@@ -32,7 +32,8 @@ app.layout = html.Div([
                                                            'list-style': 'none', 'text-indent': '17px'}),
                 html.Li("Ordered to Close/Closed", className='circle', style={'background': '#0000ff', 'color': 'black',
                                                                               'list-style': 'none',
-                                                                              'text-indent': '17px',
+                                                                
+                                                                'text-indent': '17px',
                                                                               'white-space': 'nowrap'}),
                 html.Li("You Are Here", className='circle', style={'background': '#FF0000', 'color': 'black',
                                                                'list-style': 'none', 'text-indent': '17px'}),
@@ -58,13 +59,13 @@ app.layout = html.Div([
 
             # Web_link
             html.Br(),
-            html.Label(['Website:'], style=blackbold),
-            html.Pre(id='web_link', children=[],
-                     style={'white-space': 'pre-wrap', 'word-break': 'break-all',
-                            'border': '1px solid black', 'text-align': 'center',
-                            'padding': '12px 12px 12px 12px', 'color': 'blue',
-                            'margin-top': '3px'}
-                     ),
+            # html.Label(['Website:'], style=blackbold),
+            # html.Pre(id='web_link', children=[],
+            #          style={'white-space': 'pre-wrap', 'word-break': 'break-all',
+            #                 'border': '1px solid black', 'text-align': 'center',
+            #                 'padding': '12px 12px 12px 12px', 'color': 'blue',
+            #                 'margin-top': '3px'}
+            #          ),
 
         ], className='three columns'
         ),
@@ -76,6 +77,7 @@ app.layout = html.Div([
         ]),
 
         # Map
+        html.Br(),
         html.Div([
             dcc.Graph(id='graph', config={'displayModeBar': False, 'scrollZoom': True},
                       style={'background': '#00FC87', 'padding-bottom': '2px', 'padding-left': '2px',
@@ -115,9 +117,9 @@ def update_figure(chosen_zip, chosen_description,input_address):
         lon=df_sub['longitude'],
         lat=df_sub['latitude'],
         mode='markers',
-        marker={'color': df_sub['color']},
+        marker={'color': df_sub['color'], 'size':20},
         unselected={'marker': {'opacity': 1}},
-        selected={'marker': {'opacity': 0.5, 'size': 25}},
+        selected={'marker': {'opacity': 0.5, 'size': 50}},
         # hoverinfo='text',
         # hovertext=df_sub['hov_txt'],
         # customdata=df_sub['website']
@@ -132,7 +134,7 @@ def update_figure(chosen_zip, chosen_description,input_address):
             clickmode='event+select',
             hovermode='closest',
             hoverdistance=2,
-            title=dict(text="Where to eat in Pittsburgh?", font=dict(size=50, color='red')),
+            title=dict(text="Where to Eat in Pittsburgh?", font=dict(size=50, color='brown')),
             mapbox=dict(
                 accesstoken=mapbox_access_token,
                 bearing=25,
