@@ -31,7 +31,6 @@ map_df['street address'] = map_df['num'] + ' ' + map_df['street'] + ' Pittsburgh
 map_df = map_df.drop(columns=['encounter', 'id', 'placard_st', 'bus_st_date', 'category_cd',
                               'start_time', 'end_time', 'municipal', 'ispt_purpose', 'abrv',
                               'reispt_cd', 'reispt_dt', 'num', 'street', 'status', 'zip'])
-map_df['street address'].isna
 
 uniq_facs = map_df['facility_name'].unique()
 
@@ -52,8 +51,6 @@ final_map_df = pd.DataFrame(columns=['facility_name', 'Address', 'Latitude', 'Lo
 # date, purpose & result of last inspection
 # address
 
-
-# %%
 def findColorCode(inspec_status, covid_inspect):
     color = ''
     if inspec_status == 'Inspected & Permitted':
@@ -70,8 +67,20 @@ def findColorCode(inspec_status, covid_inspect):
         else:
             color = '#800000'
     return color
+#%%
+def geolocateAddress(address):
+    add = address.replace(' ', '+')
+    key = '3btvRc91ydEdr1jO9cM86uNy29iT2kme'
+    url = f'http://open.mapquestapi.com/geocoding/v1/address?key={key}&location={add}'
+    resp = requests.get(url)
+    resp_json = resp.json()
+    resp_json = resp_json['results']
+    d = resp_json[0]['locations'][0]['latLng']
+    d['Neighborhood'] = resp_json[0]['locations'][0]['adminArea6']
+    return d
 
 
+#%%
 for fac in uniq_facs:
     fac_df = map_df.loc[map_df['facility_name'] == fac]
     addresses = fac_df['street address'].dropna().unique()
@@ -95,7 +104,20 @@ for fac in uniq_facs:
              'Inspection Purpose': insp_purpose, 'Color': colorCode, 'Restaurant Type': rest_type, 'Hover Text': hovText
              }, ignore_index=True)
 
+
 print(map_df.shape)
+#%%
+address_df = pd.DataFrame(columns=['Address', 'Latitude', 'Longitude', 'Neighborhood'])
+uniq_add = final_map_df['Address'].dropna().unique()
+#address_df = address_df.append({'Address': 'Address', 'Latitude': 'Latitude',
+#                   'Longitude': 'Longitude', 'Neighborhood': 'Neighborhood'}, ignore_index=True)
+
+for add in uniq_add:
+    d = geolocateAddress(add)
+    address_df = address_df.append({'Address': add, 'Latitude': d['lat'],
+                                    'Longitude': d['lng'], 'Neighborhood': d['Neighborhood']}, ignore_index=True)
+    print(add)
+address_df.to_csv('AddressesLongLat.csv', index=False, header=True)
 
 # %%App
 app = dash.Dash(__name__)
@@ -187,7 +209,6 @@ def update_figure(chosen_zip, chosen_description, input_address):
         selected={'marker': {'opacity': 0.5, 'size': 50}},
         # hoverinfo='text',
         # hovertext=df_sub['hov_txt'], #Pop up message info
-        # customdata=df_sub['website']
     )]
 
     # Return figure
