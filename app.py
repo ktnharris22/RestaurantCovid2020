@@ -138,7 +138,7 @@ def update_figure(chosen_zip, chosen_description,input_address):
             mapbox=dict(
                 accesstoken=mapbox_access_token,
                 bearing=25,
-                style='satellite-streets',
+                style='mapbox://styles/jasrico/ckib1pi3b0bce1apg5k54oich',
                 center=dict(
                     lat=lat,
                     lon=long
