@@ -110,7 +110,7 @@ def update_figure(chosen_zip, chosen_description,input_address):
     coordinates = data_json['features'][0]['geometry']['coordinates']
     long = coordinates[0]
     lat = coordinates[1]
-    df_sub = df.append({'longitude':long, 'latitude':lat, 'color':'#FF0000'}, ignore_index = True)
+    df_sub = df.append({'longitude':long, 'latitude':lat, 'color':'#33FFF0'}, ignore_index = True)
 
     # Create figure
     locations = [go.Scattermapbox(
@@ -121,7 +121,7 @@ def update_figure(chosen_zip, chosen_description,input_address):
         unselected={'marker': {'opacity': 1}},
         selected={'marker': {'opacity': 0.5, 'size': 50}},
         # hoverinfo='text',
-        # hovertext=df_sub['hov_txt'],
+        # hovertext=df_sub['hov_txt'], #Pop up message info
         # customdata=df_sub['website']
     )]
 
