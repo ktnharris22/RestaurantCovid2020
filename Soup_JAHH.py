@@ -15,7 +15,15 @@ import pandas as pd
 import numpy as np
 
 
-#def createDF(): df=pd.DataFrame(columns = ['Name', 'Address', 'Posted on','Removed on','Violation'])return df
+#Function Searches for common typos iwithin the HTML data
+#Returns the correct tag to remedy data output issues later on in the code
+
+def preClean(stringList,tagList):
+    cleanTag = ''
+    for i in range(len(tagList)):
+        if stringList.find(tagList[i]) != -1:
+            cleanTag = tagList[i]
+            return cleanTag    
 
 #Function that clips desired data from string of data and returns string
 #Calls clean function with removes line breaks and unnecessary spaces at start or ned of string.
@@ -32,8 +40,13 @@ def clip(stringData,startTag, endTag):
     else:    
         sIndex = stringData.find(startTag)
         eIndex = stringData.find(endTag)
-        temp = stringData[sIndex + len(startTag):eIndex]
-        clippedData = cleanUp(temp)
+        
+        if startTag == 'PA':
+            temp = stringData[sIndex + len(startTag):sIndex + len(startTag)+6]
+            clippedData = cleanUp(temp)
+        else:   
+            temp = stringData[sIndex + len(startTag):eIndex]
+            clippedData = cleanUp(temp)
     
     return clippedData
 
@@ -55,19 +68,26 @@ def parseData(beautifulSoupList):
     #creating data parsing tags for searching string
     headerKeyWord = 'NOTE: ' #checks for non-restuarant data
     
-    tagName_s = '<tr>\n<td style="cursor: default;">'
+    tagName_s = '<tr>\n<td style="cursor: default;">\n<p>'
+    tagName_s2 = '<tr>\n<td style="cursor: default;">'
+
     tagName_e = '<br/>'
     
     tagAdd_s = '<br/>'
     tagAdd_e = '<br/>' #check to see if they are the same
+    tagAdd_e2 = '<p>'
     
     tagZip_s = 'PA'
-    tagZip_e = '<p>'
+    tagZip_e = '</p>'
+    tagZip_e2 = '<p>'
+
+    #search for PA and then count 5 indices
     
     tagBoro_s = '<p>'
     tagBoro_e = '</p>'
     
     tagPDate_s = 'Posted: '
+    tagPDate_s2 = 'Posted '
     tagpDate_e = '<br/>R'
     
     tagPRem_s = 'Removed:'
@@ -76,23 +96,38 @@ def parseData(beautifulSoupList):
     tagViol_s = 'Violation:<br/>' #violation tag
     tagViol_e = '</p>\n</td>\n</tr>'
         
-    tagParamList = [['NAME',tagName_s,tagName_e],['ADDRESS',tagAdd_s,tagAdd_e], ['ZIP',tagZip_s,tagZip_e], ['BORO',tagBoro_s, tagBoro_e],['POST',tagPDate_s,tagpDate_e],['Remove',tagPRem_s,tagPRem_e],['VIOLATION',tagViol_s,tagViol_e]]
+    tagParamList = [['NAME',[tagName_s,tagName_s2] ,tagName_e],['ADDRESS',tagAdd_s,[tagAdd_e,tagAdd_e2]], ['ZIP',tagZip_s,tagZip_e], ['BORO',tagBoro_s, tagBoro_e],['POST',[tagPDate_s,tagPDate_s2],tagpDate_e],['Remove',tagPRem_s,tagPRem_e],['VIOLATION',tagViol_s,tagViol_e]]
 
     for i in range(len(beautifulSoupList)):
         rawParameter = str(beautifulSoupList[i])
         #checking to ensure that the rawparameter isn't heading information
         if rawParameter.find(headerKeyWord) == -1:
             lst=[]
-            for j in range(len(tagParamList)):
-                startT = tagParamList[j][1]
-                endT = tagParamList[j][2]
+            for j in range(len(tagParamList)): # tag here
+                
+                if type(tagParamList[j][1]) != str and type(tagParamList[j][2]) == str:
+                    startT = preClean(rawParameter,tagParamList[j][1])
+                    endT = tagParamList[j][2]
+                elif type(tagParamList[j][2]) != str and type(tagParamList[j][1]) == str:   
+                    startT = tagParamList[j][1]
+                    endT = preClean(rawParameter,tagParamList[j][2])
+                elif type(tagParamList[j][2]) != str and type(tagParamList[j][1]) != str:
+                    startT = preClean(rawParameter,tagParamList[j][1])
+                    endT = preClean(rawParameter,tagParamList[j][2])
+                else: 
+                    startT = tagParamList[j][1]
+                    endT = tagParamList[j][2]
+                
                 temp = clip(rawParameter,startT,endT)
+                
+                
+                print(tagParamList[j][0] + ': ' + temp)
                 #print(startT)
                 #print(endT)
                 if len(temp)!=0:
                     #print(temp.rstrip())
                     lst.append(temp.rstrip())
-            print(lst)
+            ##print(lst)
                     #print(type(temp))
                 #Dhruva to create desired structure to input into larger data frame
                 #tagParamList[j][0] 'Name' key
@@ -119,6 +154,7 @@ def main():
     accordionYearList = accordionYearData.find_all('tr')#beautiful soup elements list
     
     data = parseData(accordionYearList)
+    
     
 #    #x2=accordionYearData2.find_all('</i>')
 
