@@ -113,7 +113,8 @@ app.layout = html.Div([
                                                            'list-style': 'none', 'text-indent': '17px'}),
                 html.Li("Ordered to Close/Closed", className='circle', style={'background': '#FF0049', 'color': 'black',
                                                                               'list-style': 'none',
-                                                                              'text-indent': '17px',
+                                                                
+                                                                'text-indent': '17px',
                                                                               'white-space': 'nowrap'}),
                 html.Li("You Are Here", className='circle', style={'background': '#0326D1', 'color': 'black',
                                                                    'list-style': 'none', 'text-indent': '17px'}),
@@ -140,6 +141,7 @@ app.layout = html.Div([
         ]),
 
         # Map
+        html.Br(),
         html.Div([
             dcc.Graph(id='graph', config={'displayModeBar': False, 'scrollZoom': True},
                       style={'background': '#00FC87', 'padding-bottom': '2px', 'padding-left': '2px',
@@ -173,18 +175,18 @@ def update_figure(chosen_zip, chosen_description, input_address):
     coordinates = data_json['features'][0]['geometry']['coordinates']
     long = coordinates[0]
     lat = coordinates[1]
-    df_sub = df.append({'longitude': long, 'latitude': lat, 'color': '#FF0000'}, ignore_index=True)
+    df_sub = df.append({'longitude':long, 'latitude':lat, 'color':'#33FFF0'}, ignore_index = True)
 
     # Create figure
     locations = [go.Scattermapbox(
         lon=df_sub['longitude'],
         lat=df_sub['latitude'],
         mode='markers',
-        marker={'color': df_sub['color']},
+        marker={'color': df_sub['color'], 'size':20},
         unselected={'marker': {'opacity': 1}},
-        selected={'marker': {'opacity': 0.5, 'size': 25}},
+        selected={'marker': {'opacity': 0.5, 'size': 50}},
         # hoverinfo='text',
-        # hovertext=df_sub['hov_txt'],
+        # hovertext=df_sub['hov_txt'], #Pop up message info
         # customdata=df_sub['website']
     )]
 
@@ -196,11 +198,11 @@ def update_figure(chosen_zip, chosen_description, input_address):
             clickmode='event+select',
             hovermode='closest',
             hoverdistance=2,
-            title=dict(text="Where to eat in Pittsburgh?", font=dict(size=50, color='red')),
+            title=dict(text="Where to Eat in Pittsburgh?", font=dict(size=50, color='brown')),
             mapbox=dict(
                 accesstoken=mapbox_access_token,
                 bearing=25,
-                style='satellite-streets',
+                style='mapbox://styles/jasrico/ckib1pi3b0bce1apg5k54oich',
                 center=dict(
                     lat=lat,
                     lon=long
