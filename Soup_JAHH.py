@@ -64,7 +64,8 @@ def cleanUp (stringData):
 
 #Function that takes in beautifulSouplList and parses data into a usable data struct for further processing
 def parseData(beautifulSoupList):
-    
+    #Creating dataframe to return the parsed Beautiful soup data
+    df=pd.DataFrame(columns = ['Name', 'Address', 'Zip','Boro', 'Post Date','Remove Date','Violation','Covid Situation'])
     #creating data parsing tags for searching string
     headerKeyWord = 'NOTE: ' #checks for non-restuarant data
     
@@ -127,7 +128,15 @@ def parseData(beautifulSoupList):
                 if len(temp)!=0:
                     #print(temp.rstrip())
                     lst.append(temp.rstrip())
-            ##print(lst)
+            print(lst[0])
+            print(len(lst))
+            if len(lst)==7:
+                if 'Covid' in lst[6] or 'COVID' in lst[6] or 'covid' in lst[6]:
+                    df=df.append({'Name':lst[0], 'Address':lst[1], 'Zip':lst[2],'Boro':lst[3].strip('()'), 'Post Date':lst[4],'Remove Date':lst[5],'Violation':lst[6], 'Covid Situation':'COVID-19'},ignore_index=True)
+                else:
+                    df=df.append({'Name':lst[0], 'Address':lst[1], 'Zip':lst[2],'Boro':lst[3].strip('()'), 'Post Date':lst[4],'Remove Date':lst[5],'Violation':lst[6], 'Covid Situation':'No'},ignore_index=True)
+    #print(df)
+    return df
                     #print(type(temp))
                 #Dhruva to create desired structure to input into larger data frame
                 #tagParamList[j][0] 'Name' key
@@ -147,15 +156,15 @@ def main():
         requests.get(countyURL)
     soup = BeautifulSoup(page.content, 'html.parser')
     
-    
-    accordionYearData= soup.find(id="collapseOne")
-    accordionYearData2= soup.find(id="headingOne")
-    
-    accordionYearList = accordionYearData.find_all('tr')#beautiful soup elements list
-    
-    data = parseData(accordionYearList)
-    
-    
+    header=['One','Two','Three','Four','Five','Six','Seven']
+    data=pd.DataFrame()
+    for item in header:
+        accordionYearData= soup.find(id="collapse"+item)
+        accordionYearData2= soup.find(id="headingOne")
+        accordionYearList = accordionYearData.find_all('tr')#beautiful soup elements list
+        data = data.append(parseData(accordionYearList),ignore_index=True)
+    print(data)
+    return data
 #    #x2=accordionYearData2.find_all('</i>')
 
 
@@ -167,4 +176,4 @@ def main():
     #calls program that prints out current weather condition information
 
 if __name__ == '__main__': 
-    main()
+    a=main()
