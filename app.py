@@ -24,18 +24,17 @@ map_df = map_df[map_df['city'] == 'Pittsburgh']
 map_df['inspect_dt'] = pd.to_datetime(map_df['inspect_dt'], format='%m/%d/%Y')
 
 map_df = map_df.loc[map_df['inspect_dt'] >= cutoff]  # dataframe of recent inspections in Pittsburgh
-map_df = map_df.loc[map_df['category_cd'].isin(
-    category_cd_list)]  # dataframe fo recent inspection in Pittsburgh and of relevant categories
+map_df = map_df.loc[map_df['category_cd'].isin(category_cd_list)]  # dataframe fo recent inspection in Pittsburgh and of relevant categories
 map_df['street address'] = map_df['num'] + ' ' + map_df['street'] + ' Pittsburgh, PA ' #+ str(map_df['zip'])
 
-map_df = map_df.drop(columns=['encounter', 'id', 'placard_st', 'bus_st_date', 'category_cd',
+map_df = map_df.drop(columns=['encounter', 'placard_st', 'bus_st_date', 'category_cd',
                               'start_time', 'end_time', 'municipal', 'ispt_purpose', 'abrv',
                               'reispt_cd', 'reispt_dt', 'num', 'street', 'status', 'zip'])
-
+#%%
 uniq_facs = map_df['facility_name'].unique()
 
-final_map_df = pd.DataFrame(columns=['facility_name', 'Address', 'Latitude', 'Longitude',
-                                     'Inspection Date', 'Inspection Status', 'Inspection Purpose',
+final_map_df = pd.DataFrame(columns=['facility_name', 'street address', 'Inspection Date',
+                                     'Inspection Status', 'Inspection Purpose',
                                      'Color', 'Hover Text', 'Restaurant Type'])  ##description is restaurant type
 
 
@@ -67,20 +66,7 @@ def findColorCode(inspec_status, covid_inspect):
         else:
             color = '#800000'
     return color
-#%%
-def geolocateAddress(address):
-    add = address.replace(' ', '+')
-    key = '3btvRc91ydEdr1jO9cM86uNy29iT2kme'
-    url = f'http://open.mapquestapi.com/geocoding/v1/address?key={key}&location={add}'
-    resp = requests.get(url)
-    resp_json = resp.json()
-    resp_json = resp_json['results']
-    d = resp_json[0]['locations'][0]['latLng']
-    d['Neighborhood'] = resp_json[0]['locations'][0]['adminArea6']
-    return d
 
-
-#%%
 for fac in uniq_facs:
     fac_df = map_df.loc[map_df['facility_name'] == fac]
     addresses = fac_df['street address'].dropna().unique()
@@ -94,32 +80,58 @@ for fac in uniq_facs:
         insp_purpose = uniq_fac_df['purpose'][uniq_fac_df['inspect_dt'] == most_recent_inspect_dt].iloc[0]
         covid_inspect = insp_purpose.find('COVID') == 0
         rest_type = uniq_fac_df['description'][uniq_fac_df['inspect_dt'] == most_recent_inspect_dt].iloc[0]
-        lat = ''
-        long = ''
         colorCode = findColorCode(insp_status, covid_inspect)
         hovText = f'Name:{fac} <br>Address:{address} <br>Most Recent Inspection Date:{most_recent_inspect_dt} Inspection Status:{insp_status} Inspection Purpose:{insp_purpose}'
         final_map_df = final_map_df.append(
-            {'facility_name': fac, 'Address': address, 'Latitude': lat, 'Longitude': long,
+            {'facility_name': fac, 'street address': address,
              'Inspection Status': insp_status, 'Inspection Date': most_recent_inspect_dt,
              'Inspection Purpose': insp_purpose, 'Color': colorCode, 'Restaurant Type': rest_type, 'Hover Text': hovText
              }, ignore_index=True)
 
+#%% find addresses with missing lat long
 
-print(map_df.shape)
-#%%
-address_df = pd.DataFrame(columns=['Address', 'Latitude', 'Longitude', 'Neighborhood'])
-uniq_add = final_map_df['Address'].dropna().unique()
-#address_df = address_df.append({'Address': 'Address', 'Latitude': 'Latitude',
-#                   'Longitude': 'Longitude', 'Neighborhood': 'Neighborhood'}, ignore_index=True)
+def geolocateAddress(address):
+    add = address.replace(' ', '+')
+    key = '3btvRc91ydEdr1jO9cM86uNy29iT2kme'
+    url = f'http://open.mapquestapi.com/geocoding/v1/address?key={key}&location={add}'
+    resp = requests.get(url)
+    resp_json = resp.json()
+    resp_json = resp_json['results']
+    d = resp_json[0]['locations'][0]['latLng']
+    d['Neighborhood'] = resp_json[0]['locations'][0]['adminArea6']
+    return d
+# address_df = pd.DataFrame(columns=['Address', 'Latitude', 'Longitude', 'Neighborhood'])
+# uniq_add = final_map_df['Address'].dropna().unique()
+# #address_df = address_df.append({'Address': 'Address', 'Latitude': 'Latitude',
+# #                   'Longitude': 'Longitude', 'Neighborhood': 'Neighborhood'}, ignore_index=True)
+#
+# for add in uniq_add:
+#     d = geolocateAddress(add)
+#     address_df = address_df.append({'Address': add, 'Latitude': d['lat'],
+#                                     'Longitude': d['lng'], 'Neighborhood': d['Neighborhood']}, ignore_index=True)
+#     print(add)
+# address_df.to_csv('AddressesLongLat.csv', index=False, header=True)
 
-for add in uniq_add:
-    d = geolocateAddress(add)
-    address_df = address_df.append({'Address': add, 'Latitude': d['lat'],
-                                    'Longitude': d['lng'], 'Neighborhood': d['Neighborhood']}, ignore_index=True)
-    print(add)
-address_df.to_csv('AddressesLongLat.csv', index=False, header=True)
 
-# %%App
+#%%ProcessGeoFoodFacs.csv
+category_cd_list = [117, 118, 201, 202, 203, 211, 212, 250, 407]  # relevant categeory codes
+cutoff = datetime.datetime(2018, 1, 1)  # cutoff threshold for recency
+
+geo_df = pd.read_csv("geofoodfacilities.csv")
+geo_df = geo_df[geo_df['city'] == 'Pittsburgh']
+#geo_df['inspect_dt'] = pd.to_datetime(map_df['inspect_dt'], format='%m/%d/%Y')
+
+#geo_df = geo_df.loc[geo_df['inspect_dt'] >= cutoff]  # dataframe of recent inspections in Pittsburgh
+geo_df = geo_df.loc[geo_df['category_cd'].isin(category_cd_list)]  # dataframe fo recent inspection in Pittsburgh and of relevant categories
+geo_df['street address'] = geo_df['num'] + ' ' + geo_df['street'] + ' Pittsburgh, PA ' #+ str(map_df['zip'])
+
+geo_df = geo_df.drop(columns=['num', 'street', 'city', 'state', 'municipal', 'category_cd', 'description', 'p_code', 'fdo',
+                              'bus_st_date', 'bus_cl_date', 'seat_count', 'noroom', 'sq_feet', 'status', 'placard_st', 'status', 'zip'])
+geo_valid = geo_df[geo_df['longitude'].notna()]
+merge_df = pd.merge(final_map_df, geo_valid, on='street address', how='left')
+
+
+# App
 app = dash.Dash(__name__)
 
 blackbold = {'color': 'black', 'font-weight': 'bold'}
@@ -131,13 +143,18 @@ app.layout = html.Div([
         html.Div([
             # Map-legend
             html.Ul([
-                html.Li("Open", className='circle', style={'background': '#0FFF00', 'color': 'black',
+                html.Li("Open and Already Inspected for COVID", className='circle',
+                        style={'background': '#0FFF00', 'color': 'black',
                                                            'list-style': 'none', 'text-indent': '17px'}),
-                html.Li("Ordered to Close/Closed", className='circle', style={'background': '#FF0049', 'color': 'black',
-                                                                              'list-style': 'none',
-                                                                
-                                                                'text-indent': '17px',
-                                                                              'white-space': 'nowrap'}),
+                html.Li("Open and Not Inspected for COVID", className='circle',
+                        style={'background': '#006600', 'color': 'black',
+                               'list-style': 'none', 'text-indent': '17px'}),
+                html.Li("Ordered to Close/Closed because of COVID", className='circle',
+                        style={'background': '#ff0000', 'color': 'black', 'list-style': 'none',
+                        'text-indent': '17px', 'white-space': 'nowrap'}),
+                html.Li("Ordered to Close/Closed NOT because of COVID", className='circle',
+                        style={'background': '#800000', 'color': 'black', 'list-style': 'none',
+                               'text-indent': '17px', 'white-space': 'nowrap'}),
                 html.Li("You Are Here", className='circle', style={'background': '#0326D1', 'color': 'black',
                                                                    'list-style': 'none', 'text-indent': '17px'}),
                 html.Li("Warning", className='circle', style={'background': '#F99505', 'color': 'black',
@@ -149,8 +166,8 @@ app.layout = html.Div([
             # Restaurant Category
             html.Label(children=['What kind of restaurant: '], style=blackbold),
             dcc.Checklist(id='restaurant_type',
-                          options=[{'label': str(b), 'value': b} for b in sorted(df['description'].unique())],
-                          value=[b for b in sorted(df['description'].unique())],
+                          options=[{'label': str(b), 'value': b} for b in sorted(merge_df['Restaurant Type'].unique())],
+                          value=[b for b in sorted(merge_df['Restaurant Type'].unique())],
                           ),
 
         ], className='three columns'
@@ -183,12 +200,10 @@ app.layout = html.Div([
 # ---------------------------------------------------------------
 # Output of Graph
 @app.callback(Output('graph', 'figure'),
-              [Input('zip_name', 'value'),
-               Input('restaurant_type', 'value')],
+              [Input('restaurant_type', 'value')],
               Input('Address', 'value'))
-def update_figure(chosen_zip, chosen_description, input_address):
-    df_sub = df[(df['zip'].isin(chosen_zip)) &
-                (df['description'].isin(chosen_description))]
+def update_figure(chosen_type, input_address):
+    df_sub = merge_df[(merge_df['Restaurant Type'].isin(chosen_type))]
     zoom_address = input_address.replace(' ', '%20') if type(input_address) == str \
         else '5000%20Forbes%20Ave.%20Pittsburgh,%20PA'
     url = f"https://api.mapbox.com/geocoding/v5/mapbox.places/{zoom_address}.json?access_token={mapbox_access_token}"
@@ -197,18 +212,18 @@ def update_figure(chosen_zip, chosen_description, input_address):
     coordinates = data_json['features'][0]['geometry']['coordinates']
     long = coordinates[0]
     lat = coordinates[1]
-    df_sub = df.append({'longitude':long, 'latitude':lat, 'color':'#33FFF0'}, ignore_index = True)
+    df_sub = df_sub.append({'longitude':long, 'latitude':lat, 'color':'#33FFF0'}, ignore_index = True)
 
     # Create figure
     locations = [go.Scattermapbox(
         lon=df_sub['longitude'],
         lat=df_sub['latitude'],
         mode='markers',
-        marker={'color': df_sub['color'], 'size':20},
+        marker={'color': df_sub['Color'], 'size':10},
         unselected={'marker': {'opacity': 1}},
         selected={'marker': {'opacity': 0.5, 'size': 50}},
-        # hoverinfo='text',
-        # hovertext=df_sub['hov_txt'], #Pop up message info
+        hoverinfo='text',
+        hovertext=df_sub['Hover Text'], #Pop up message info
     )]
 
     # Return figure
@@ -233,24 +248,6 @@ def update_figure(chosen_zip, chosen_description, input_address):
             ),
         )
     }
-
-
-# ---------------------------------------------------------------
-# callback for Web_link
-@app.callback(
-    Output('web_link', 'children'),
-    [Input('graph', 'clickData')])
-def display_click_data(clickData):
-    if clickData is None:
-        return 'Click on any bubble'
-    else:
-        # print (clickData)
-        the_link = clickData['points'][0]['customdata']
-        if the_link is None:
-            return 'No Website Available'
-        else:
-            return html.A(the_link, href=the_link, target="_blank")
-
 
 # #--------------------------------------------------------------
 if __name__ == '__main__':
