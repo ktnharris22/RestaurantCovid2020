@@ -13,7 +13,7 @@ import sys
 from bs4 import BeautifulSoup
 import pandas as pd
 import numpy as np
-
+import re
 
 #Function Searches for common typos iwithin the HTML data
 #Returns the correct tag to remedy data output issues later on in the code
@@ -29,24 +29,35 @@ def preClean(stringList,tagList):
 #Calls clean function with removes line breaks and unnecessary spaces at start or ned of string.
 def clip(stringData,startTag, endTag):
     clippedData = 'dataNotclipped'
-    
+    temp = ''
     if startTag == endTag:
         sIndex = stringData.find(startTag)
         eIndex = stringData.find(endTag,sIndex+1)
         temp = stringData[sIndex + len(startTag):eIndex]
         clippedData = cleanUp(temp)
     
-  
     else:    
         sIndex = stringData.find(startTag)
         eIndex = stringData.find(endTag)
         
         if startTag == 'PA':
-            temp = stringData[sIndex + len(startTag):sIndex + len(startTag)+6]
+            pattern = [' [0-9]{5}', '[0-9]{5}<br/>']   
+            for i in range(len(pattern)):
+                if len (re.findall(pattern[i],stringData)) != 0:
+                    
+                    if pattern[i] == ' [0-9]{5}':
+                        temp = re.findall(pattern[i],stringData)[0][0:6]
+                    else: temp = re.findall(pattern[i],stringData)[0][0:5]
             clippedData = cleanUp(temp)
+            if not clippedData:
+                clippedData = 'NaN'
+            
         else:   
             temp = stringData[sIndex + len(startTag):eIndex]
             clippedData = cleanUp(temp)
+            if not clippedData:
+                clippedData = 'NaN'
+        
     
     return clippedData
 
@@ -79,6 +90,7 @@ def parseData(beautifulSoupList):
     tagAdd_e2 = '<p>'
     
     tagZip_s = 'PA'
+    tagZip_s2 = 'Pittsburgh'
     tagZip_e = '</p>'
     tagZip_e2 = '<p>'
 
@@ -88,7 +100,9 @@ def parseData(beautifulSoupList):
     tagBoro_e = '</p>'
     
     tagPDate_s = 'Posted: '
-    tagPDate_s2 = 'Posted '
+    tagPDate_s2 = 'Posted:'
+    tagPDate_s3 = 'Posted '
+    tagPDate_s4 = 'Posted'
     tagpDate_e = '<br/>R'
     
     tagPRem_s = 'Removed:'
@@ -97,7 +111,7 @@ def parseData(beautifulSoupList):
     tagViol_s = 'Violation:<br/>' #violation tag
     tagViol_e = '</p>\n</td>\n</tr>'
         
-    tagParamList = [['NAME',[tagName_s,tagName_s2] ,tagName_e],['ADDRESS',tagAdd_s,[tagAdd_e,tagAdd_e2]], ['ZIP',tagZip_s,tagZip_e], ['BORO',tagBoro_s, tagBoro_e],['POST',[tagPDate_s,tagPDate_s2],tagpDate_e],['Remove',tagPRem_s,tagPRem_e],['VIOLATION',tagViol_s,tagViol_e]]
+    tagParamList = [['NAME',[tagName_s,tagName_s2] ,tagName_e],['ADDRESS',tagAdd_s,[tagAdd_e,tagAdd_e2]], ['ZIP',tagZip_s,tagZip_e], ['BORO',tagBoro_s, tagBoro_e],['POST',[tagPDate_s,tagPDate_s2,tagPDate_s3,tagPDate_s4],tagpDate_e],['Remove',tagPRem_s,tagPRem_e],['VIOLATION',tagViol_s,tagViol_e]]
 
     for i in range(len(beautifulSoupList)):
         rawParameter = str(beautifulSoupList[i])
@@ -115,7 +129,7 @@ def parseData(beautifulSoupList):
                 elif type(tagParamList[j][2]) != str and type(tagParamList[j][1]) != str:
                     startT = preClean(rawParameter,tagParamList[j][1])
                     endT = preClean(rawParameter,tagParamList[j][2])
-                else: 
+                else: #tagParamList[j][0] != 'BORO': 
                     startT = tagParamList[j][1]
                     endT = tagParamList[j][2]
                 
@@ -156,10 +170,12 @@ def main():
         requests.get(countyURL)
     soup = BeautifulSoup(page.content, 'html.parser')
     
-    header=['One','Two','Three','Four','Five','Six','Seven']
+    #header=['One','Two','Three','Four','Five','Six','Seven']
+    header=['Six']
+
     data=pd.DataFrame()
     for item in header:
-        accordionYearData= soup.find(id="collapse"+item)
+        accordionYearData= soup.find(id="collapse" + item)
         accordionYearData2= soup.find(id="headingOne")
         accordionYearList = accordionYearData.find_all('tr')#beautiful soup elements list
         data = data.append(parseData(accordionYearList),ignore_index=True)
@@ -168,7 +184,7 @@ def main():
 #    #x2=accordionYearData2.find_all('</i>')
 
 
-    #print(accordionYearData.prettify())
+    print(accordionYearData.prettify())
     #print(accordionYearData2.prettify())
     
 #    restaurantData = accordionYearData.find("<tr>") #searches in HTML file for the detail information
