@@ -15,6 +15,19 @@ import pandas as pd
 import numpy as np
 import re
 
+
+# Function that pulls the Issue Type from the Alleghany County Website header
+
+def pullHeader (soupHeaderData):
+    #Types of Restaurant Notices
+    header = 'Out_of_Scope'
+    keyWords = ['Closure', 'Alert']
+    headerStr = str(soupHeaderData)
+    for i in range(len(keyWords)):
+        if headerStr.find(keyWords[i]) != -1:
+            header = keyWords[i].upper()
+    return header
+
 #Function Searches for common typos iwithin the HTML data
 #Returns the correct tag to remedy data output issues later on in the code
 
@@ -27,6 +40,7 @@ def preClean(stringList,tagList):
 
 #Function that clips desired data from string of data and returns string
 #Calls clean function with removes line breaks and unnecessary spaces at start or ned of string.
+
 def clip(stringData,startTag, endTag):
     clippedData = 'dataNotclipped'
     temp = ''
@@ -40,11 +54,11 @@ def clip(stringData,startTag, endTag):
         sIndex = stringData.find(startTag)
         eIndex = stringData.find(endTag)
         
+        #Specific checker for zip code
         if startTag == 'PA':
             pattern = [' [0-9]{5}', '[0-9]{5}<br/>']   
             for i in range(len(pattern)):
                 if len (re.findall(pattern[i],stringData)) != 0:
-                    
                     if pattern[i] == ' [0-9]{5}':
                         temp = re.findall(pattern[i],stringData)[0][0:6]
                     else: temp = re.findall(pattern[i],stringData)[0][0:5]
@@ -77,6 +91,7 @@ def cleanUp (stringData):
 def parseData(beautifulSoupList):
     #Creating dataframe to return the parsed Beautiful soup data
     df=pd.DataFrame(columns = ['Name', 'Address', 'Zip','Boro', 'Post Date','Remove Date','Violation','Covid Situation'])
+    
     #creating data parsing tags for searching string
     headerKeyWord = 'NOTE: ' #checks for non-restuarant data
     
@@ -86,7 +101,7 @@ def parseData(beautifulSoupList):
     tagName_e = '<br/>'
     
     tagAdd_s = '<br/>'
-    tagAdd_e = '<br/>' #check to see if they are the same
+    tagAdd_e = '<br/>' 
     tagAdd_e2 = '<p>'
     
     tagZip_s = 'PA'
@@ -94,7 +109,6 @@ def parseData(beautifulSoupList):
     tagZip_e = '</p>'
     tagZip_e2 = '<p>'
 
-    #search for PA and then count 5 indices
     
     tagBoro_s = '<p>'
     tagBoro_e = '</p>'
@@ -136,60 +150,46 @@ def parseData(beautifulSoupList):
                 temp = clip(rawParameter,startT,endT)
                 
                 
-                print(tagParamList[j][0] + ': ' + temp)
-                #print(startT)
-                #print(endT)
+                #print(tagParamList[j][0] + ': ' + temp)
                 if len(temp)!=0:
                     #print(temp.rstrip())
                     lst.append(temp.rstrip())
-            print(lst[0])
-            print(len(lst))
+            #print(lst[0])
+            #print(len(lst))
             if len(lst)==7:
                 if 'Covid' in lst[6] or 'COVID' in lst[6] or 'covid' in lst[6]:
                     df=df.append({'Name':lst[0], 'Address':lst[1], 'Zip':lst[2],'Boro':lst[3].strip('()'), 'Post Date':lst[4],'Remove Date':lst[5],'Violation':lst[6], 'Covid Situation':'COVID-19'},ignore_index=True)
                 else:
                     df=df.append({'Name':lst[0], 'Address':lst[1], 'Zip':lst[2],'Boro':lst[3].strip('()'), 'Post Date':lst[4],'Remove Date':lst[5],'Violation':lst[6], 'Covid Situation':'No'},ignore_index=True)
-    #print(df)
     return df
-                    #print(type(temp))
-                #Dhruva to create desired structure to input into larger data frame
-                #tagParamList[j][0] 'Name' key
-                #temp 'Name Data'
-                
-                
-    
-    #dataStruct = dict()
-    
+
 def main():
     
-    #URL 
-    
+    #Data URL 
     countyURL = 'https://www.alleghenycounty.us/Health-Department/Programs/Food-Safety/Consumer-Alerts-and-Closures.aspx'
     
+    #Request page information & create soup variable
     page =\
         requests.get(countyURL)
     soup = BeautifulSoup(page.content, 'html.parser')
     
+    #Keywords List to access Alleghany County Alert and Closure data (2018-2020)
     #header=['One','Two','Three','Four','Five','Six','Seven']
-    header=['Six']
-
+    header=['Five']
+    #instantiate primary dataframe to be passed to API data
     data=pd.DataFrame()
+    
+    #Pull and concatenate accordion data for each set of data on site
     for item in header:
-        accordionYearData= soup.find(id="collapse" + item)
-        accordionYearData2= soup.find(id="headingOne")
-        accordionYearList = accordionYearData.find_all('tr')#beautiful soup elements list
+        accordionData = soup.find(id="collapse" + item)
+        accordionYearDataHeader = soup.find(id="heading" + item)
+        accordionYearList = accordionData.find_all('tr')#beautiful soup elements list
+        header = pullHeader(accordionYearDataHeader)
+        #Append data frame to dtaframes of dataframes representing ...
         data = data.append(parseData(accordionYearList),ignore_index=True)
     print(data)
     return data
-#    #x2=accordionYearData2.find_all('</i>')
 
-
-    print(accordionYearData.prettify())
-    #print(accordionYearData2.prettify())
-    
-#    restaurantData = accordionYearData.find("<tr>") #searches in HTML file for the detail information
-    
-    #calls program that prints out current weather condition information
 
 if __name__ == '__main__': 
     a=main()
