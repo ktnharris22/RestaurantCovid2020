@@ -101,8 +101,10 @@ def parseData(beautifulSoupList):
     tagName_e = '<br/>'
     
     tagAdd_s = '<br/>'
-    tagAdd_e = '<br/>' 
-    tagAdd_e2 = '<p>'
+    tagAdd_e = '\r\n'
+    tagAdd_e2 = '\r'
+    tagAdd_e3 = '<p>'
+    tagAdd_e4 = '<br/>' 
     
     tagZip_s = 'PA'
     tagZip_s2 = 'Pittsburgh'
@@ -125,29 +127,48 @@ def parseData(beautifulSoupList):
     tagViol_s = 'Violation:<br/>' #violation tag
     tagViol_e = '</p>\n</td>\n</tr>'
         
-    tagParamList = [['NAME',[tagName_s,tagName_s2] ,tagName_e],['ADDRESS',tagAdd_s,[tagAdd_e,tagAdd_e2]], ['ZIP',tagZip_s,tagZip_e], ['BORO',tagBoro_s, tagBoro_e],['POST',[tagPDate_s,tagPDate_s2,tagPDate_s3,tagPDate_s4],tagpDate_e],['Remove',tagPRem_s,tagPRem_e],['VIOLATION',tagViol_s,tagViol_e]]
-
+    tagParamList = [['NAME',[tagName_s,tagName_s2] ,tagName_e],['ADDRESS',tagAdd_s,[tagAdd_e,tagAdd_e2,tagAdd_e3,tagAdd_e4]], ['ZIP',tagZip_s,tagZip_e], ['BORO',tagBoro_s, tagBoro_e],['POST',[tagPDate_s,tagPDate_s2,tagPDate_s3,tagPDate_s4],tagpDate_e],['Remove',tagPRem_s,tagPRem_e],['VIOLATION',tagViol_s,tagViol_e]]
+    temp = ''
     for i in range(len(beautifulSoupList)):
         rawParameter = str(beautifulSoupList[i])
         #checking to ensure that the rawparameter isn't heading information
+        print('\n')
         if rawParameter.find(headerKeyWord) == -1:
             lst=[]
             for j in range(len(tagParamList)): # tag here
-                
-                if type(tagParamList[j][1]) != str and type(tagParamList[j][2]) == str:
+            
+            #Specific address check and generalied checks
+            #for returning parsed soup data
+                if tagParamList[j][0] == 'ADDRESS':        
+                    pattern = r'<br/>[ ]*[0-9]+[ ]*[0-9,A-Z]+.*'
+                    rawAddList =  re.findall(pattern,rawParameter)
+                    if len(rawAddList) == 0:
+                        temp = 'NaN'
+                    else:
+                        addressPatterns = [r'<br/>.*<p>',r'<br/>.*<br/>',r'<br/>.*\r']
+                        for k in range(len(addressPatterns)):
+                            subString = re.findall(addressPatterns[k],rawAddList[0])
+                            if len(subString) != 0:
+                                startT = tagParamList[j][1]
+                                endT = preClean(subString[0],tagParamList[j][2])
+                                break
+                        temp = clip(subString[0],startT,endT)
+                elif type(tagParamList[j][1]) != str and type(tagParamList[j][2]) == str:
                     startT = preClean(rawParameter,tagParamList[j][1])
                     endT = tagParamList[j][2]
+                    temp = clip(rawParameter,startT,endT)
                 elif type(tagParamList[j][2]) != str and type(tagParamList[j][1]) == str:   
                     startT = tagParamList[j][1]
                     endT = preClean(rawParameter,tagParamList[j][2])
+                    temp = clip(rawParameter,startT,endT)
                 elif type(tagParamList[j][2]) != str and type(tagParamList[j][1]) != str:
                     startT = preClean(rawParameter,tagParamList[j][1])
                     endT = preClean(rawParameter,tagParamList[j][2])
-                else: #tagParamList[j][0] != 'BORO': 
+                    temp = clip(rawParameter,startT,endT)
+                else:  
                     startT = tagParamList[j][1]
                     endT = tagParamList[j][2]
-                
-                temp = clip(rawParameter,startT,endT)
+                    temp = clip(rawParameter,startT,endT)
                 
                 
                 #print(tagParamList[j][0] + ': ' + temp)
@@ -163,7 +184,7 @@ def parseData(beautifulSoupList):
                     df=df.append({'Name':lst[0], 'Address':lst[1], 'Zip':lst[2],'Boro':lst[3].strip('()'), 'Post Date':lst[4],'Remove Date':lst[5],'Violation':lst[6], 'Covid Situation':'No'},ignore_index=True)
     return df
 
-def main():
+def getSoupDF():
     
     #Data URL 
     countyURL = 'https://www.alleghenycounty.us/Health-Department/Programs/Food-Safety/Consumer-Alerts-and-Closures.aspx'
@@ -175,7 +196,7 @@ def main():
     
     #Keywords List to access Alleghany County Alert and Closure data (2018-2020)
     #header=['One','Two','Three','Four','Five','Six','Seven']
-    header=['Five']
+    header=['Six']
     #instantiate primary dataframe to be passed to API data
     data=pd.DataFrame()
     
@@ -190,6 +211,11 @@ def main():
     print(data)
     return data
 
-
+    
+def main():
+    
+    getSoupDF()
+    
 if __name__ == '__main__': 
-    a=main()
+    main()
+
