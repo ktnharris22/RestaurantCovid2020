@@ -19,8 +19,34 @@ import plotly.graph_objs as go
 category_cd_list = [117, 118, 201, 202, 203, 211, 212, 250, 407]  # relevant categeory codes
 cutoff = datetime.datetime(2018, 1, 1)  # cutoff threshold for recency
 
+map_lat_long = pd.read_csv("AddressesLongLat.csv")
+map_lat_long = map_lat_long[map_lat_long['Longitude'] > -82]
+col = map_lat_long.Address.str.split(expand=True)
+col[3] = col[3].map(lambda x: x.lstrip(',').rstrip(','))
+col.rename(columns={0:"num",3:"city",4:"state"},inplace=True)
+col["street"] = col[1]+" "+col[2]
+col[["latitude","longitude","address"]] = map_lat_long[["Latitude","Longitude","Address"]]
+col.drop(col.columns[[1,2,5,6,7,8]],axis=1,inplace=True)
+
 map_df = pd.read_csv("RestaurantInspect.csv")
 map_df = map_df[map_df['city'] == 'Pittsburgh']
+# print(map_df[["facility_name","inspect_dt","category_cd","placard_desc"]])
+# col["facility_name"]=
+map_df["entireaddress"]=map_df["num"]+map_df["street"]+map_df["city"]
+map_df["entireaddress"]=map_df["entireaddress"].str.replace(" ","")
+col["entireaddress"]=col["num"]+col["street"]+col["city"]
+col["entireaddress"] = col["entireaddress"].str.replace(" ","")
+# print(map_df["entireaddress"])
+
+map_df_1 = pd.merge(map_df, col, left_on='entireaddress', right_on='entireaddress',how='left')
+map_df_1=map_df_1[pd.notnull(map_df_1.longitude)]
+map_df_1[['num', 'street','city', 'state']]=map_df_1[['num_x', 'street_x','city_x', 'state_x']]
+map_df = map_df_1.drop(columns=['num_x', 'street_x','city_x', 'state_x',
+                                  'num_y', 'street_y','city_y', 'state_y'])
+
+
+
+
 map_df['inspect_dt'] = pd.to_datetime(map_df['inspect_dt'], format='%m/%d/%Y')
 
 map_df = map_df.loc[map_df['inspect_dt'] >= cutoff]  # dataframe of recent inspections in Pittsburgh
@@ -59,8 +85,7 @@ def findColorCode(inspec_status, covid_inspect):
             color = '#006600'
     elif inspec_status == 'Consumer Alert' or 'Not Selected':
         color = '#F99505'
-    elif inspec_status in (
-    'Closure/Imminent Hazard', 'Ordered To Close', 'Inspected/Permit denied', 'Closure/No Entry'):
+    elif inspec_status == 'Closure/Imminent Hazard' or 'Ordered To Close' or 'Inspected/Permit denied' or 'Closure/No Entry' or 'Closure/Unpaid Fees':
         if covid_inspect == True:
             color = '#ff0000'
         else:

@@ -41,15 +41,24 @@ col["entireaddress"] = col["entireaddress"].str.replace(" ","")
 # print(map_df["entireaddress"])
 
 map_df_1 = pd.merge(map_df, col, left_on='entireaddress', right_on='entireaddress',how='left')
+map_df_1=map_df_1[pd.notnull(map_df_1.longitude)]
+map_df_1[['num', 'street','city', 'state']]=map_df_1[['num_x', 'street_x','city_x', 'state_x']]
+map_df = map_df_1.drop(columns=['num_x', 'street_x','city_x', 'state_x',
+                                  'num_y', 'street_y','city_y', 'state_y'])
+
+
 # map_df_1=pd.merge(map_df,custocolmer,on='entireaddress',how='outer')
 map_df_4=pd.DataFrame()
 map_df_4[['facility_name', 'longitude', 'latitude', 'address']] = \
     map_df_1[['facility_name', 'longitude', 'latitude', 'address']]
 
 map_df_4[["street address"]] = map_df_1["num_x"] + ' ' + map_df_1["street_x"] + " Pittsburgh, PA "
+map_df_4["placard_desc"]=map_df_1["placard_desc"]
 map_df_4=map_df_4[pd.notnull(map_df_4.longitude)]
 map_df_4=map_df_4[pd.notnull(map_df_4.facility_name)]
-print(map_df_4.columns)
+
+print(map_df.columns)
+print(map_df["longitude"])
 # print(len(map_df_4["facility_name"].unique()))
 
 geo_df_2 = pd.read_csv("geofoodfacilities.csv")
@@ -59,6 +68,8 @@ geo_df=pd.DataFrame()
 geo_df[['facility_name', 'longitude', 'latitude', 'address','street address']]=\
     geo_df_2[['facility_name', 'longitude', 'latitude', 'address','street address']]
 geo_df = geo_df.append(map_df_4,ignore_index = True)
+print(map_df["placard_desc"].unique())
+print(map_df[["facility_name"]][map_df["placard_desc"]=="Closure/No Entry"])
 
 # geo_df_2["entireaddress"]=geo_df_2["facility_name"]+geo_df_2["num"]+geo_df_2["street"]+geo_df_2["city"]
 # geo_df_2["entireaddress"] = geo_df_2["entireaddress"].str.replace(" ","")
@@ -66,7 +77,7 @@ geo_df = geo_df.append(map_df_4,ignore_index = True)
 
 # geo_df = geo_df_2["facility_name","inspect_dt","category_cd","placard_desc"]
 
-print(len(geo_df))
+# print(len(geo_df))
 
 # geo_df = geo_df[geo_df["longitude"]!=""]
 # geo_df = geo_df.dropna(axis=0, subset=['longitude'])
@@ -81,18 +92,18 @@ print(len(geo_df))
 # map_df = pd.merge(col, geo_df, left_index=True, right_index=True, how='outer')
 # print(map_df)
 
-category_cd_list = [117, 118, 201, 202, 203, 211, 212, 250, 407]  # relevant categeory codes
-
-geo_df = pd.read_csv("geofoodfacilities.csv")
-geo_df = geo_df[geo_df['city'] == 'Pittsburgh']
-#geo_df['inspect_dt'] = pd.to_datetime(map_df['inspect_dt'], format='%m/%d/%Y')
-
-#geo_df = geo_df.loc[geo_df['inspect_dt'] >= cutoff]  # dataframe of recent inspections in Pittsburgh
-geo_df = geo_df.loc[geo_df['category_cd'].isin(category_cd_list)]  # dataframe fo recent inspection in Pittsburgh and of relevant categories
-geo_df['street address'] = geo_df['num'] + ' ' + geo_df['street'] + ' Pittsburgh, PA ' #+ str(map_df['zip'])
-
-geo_df = geo_df.drop(columns=['num', 'street', 'city', 'state', 'municipal', 'category_cd', 'description', 'p_code', 'fdo',
-                              'bus_st_date', 'bus_cl_date', 'seat_count', 'noroom', 'sq_feet', 'status', 'placard_st', 'status', 'zip'])
-geo_valid = geo_df[geo_df['longitude'].notna()]
-# merge_df = pd.merge(final_map_df, geo_valid, on='street address', how='left')
-print(geo_valid.columns)
+# category_cd_list = [117, 118, 201, 202, 203, 211, 212, 250, 407]  # relevant categeory codes
+#
+# geo_df = pd.read_csv("geofoodfacilities.csv")
+# geo_df = geo_df[geo_df['city'] == 'Pittsburgh']
+# #geo_df['inspect_dt'] = pd.to_datetime(map_df['inspect_dt'], format='%m/%d/%Y')
+#
+# #geo_df = geo_df.loc[geo_df['inspect_dt'] >= cutoff]  # dataframe of recent inspections in Pittsburgh
+# geo_df = geo_df.loc[geo_df['category_cd'].isin(category_cd_list)]  # dataframe fo recent inspection in Pittsburgh and of relevant categories
+# geo_df['street address'] = geo_df['num'] + ' ' + geo_df['street'] + ' Pittsburgh, PA ' #+ str(map_df['zip'])
+#
+# geo_df = geo_df.drop(columns=['num', 'street', 'city', 'state', 'municipal', 'category_cd', 'description', 'p_code', 'fdo',
+#                               'bus_st_date', 'bus_cl_date', 'seat_count', 'noroom', 'sq_feet', 'status', 'placard_st', 'status', 'zip'])
+# geo_valid = geo_df[geo_df['longitude'].notna()]
+# # merge_df = pd.merge(final_map_df, geo_valid, on='street address', how='left')
+# print(geo_valid.columns)
