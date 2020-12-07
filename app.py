@@ -44,7 +44,10 @@ map_df_1[['num', 'street','city', 'state']]=map_df_1[['num_x', 'street_x','city_
 map_df = map_df_1.drop(columns=['num_x', 'street_x','city_x', 'state_x',
                                   'num_y', 'street_y','city_y', 'state_y'])
 
-
+# print(map_df[["facility_name","latitude","longitude","placard_desc","inspect_dt",'purpose']][map_df["facility_name"] == "Stuff'd Pierogi Bar"])
+# print(map_df[["facility_name","latitude","longitude","placard_desc","inspect_dt",'purpose']][map_df["facility_name"] == "Seven"])
+print(map_df[["latitude","longitude"]][map_df["facility_name"] == "Stuff'd Pierogi Bar"])
+print(map_df[["latitude","longitude"]][map_df["facility_name"] == "Seven"])
 
 
 map_df['inspect_dt'] = pd.to_datetime(map_df['inspect_dt'], format='%m/%d/%Y')
@@ -99,7 +102,7 @@ for fac in uniq_facs:
     for address in addresses:
         uniq_fac_df = fac_df[fac_df['street address'] == address]
         placard_desc = uniq_fac_df['placard_desc'].unique()
-        print(f'{fac} {address}')
+        # print(f'{fac} {address}')
         most_recent_inspect_dt = max(uniq_fac_df['inspect_dt'])  # find the most recent inspect date
         insp_status = uniq_fac_df['placard_desc'][uniq_fac_df['inspect_dt'] == most_recent_inspect_dt].iloc[0]
         insp_purpose = uniq_fac_df['purpose'][uniq_fac_df['inspect_dt'] == most_recent_inspect_dt].iloc[0]
@@ -138,31 +141,6 @@ def geolocateAddress(address):
 # address_df.to_csv('AddressesLongLat.csv', index=False, header=True)
 
 
-map_lat_long = pd.read_csv("AddressesLongLat.csv")
-map_lat_long = map_lat_long[map_lat_long['Longitude'] > -82]
-col = map_lat_long.Address.str.split(expand=True)
-col[3] = col[3].map(lambda x: x.lstrip(',').rstrip(','))
-col.rename(columns={0:"num",3:"city",4:"state"},inplace=True)
-col["street"] = col[1]+" "+col[2]
-col[["latitude","longitude","address"]] = map_lat_long[["Latitude","Longitude","Address"]]
-col.drop(col.columns[[1,2,5,6,7,8]],axis=1,inplace=True)
-
-map_df = pd.read_csv("RestaurantInspect.csv")
-map_df = map_df[map_df['city'] == 'Pittsburgh']
-map_df["entireaddress"]=map_df["num"]+map_df["street"]+map_df["city"]
-map_df["entireaddress"]=map_df["entireaddress"].str.replace(" ","")
-col["entireaddress"]=col["num"]+col["street"]+col["city"]
-col["entireaddress"] = col["entireaddress"].str.replace(" ","")
-
-map_df_1 = pd.merge(map_df, col, left_on='entireaddress', right_on='entireaddress',how='left')
-
-map_df_4=pd.DataFrame()
-map_df_4[['facility_name', 'longitude', 'latitude', 'address']] = \
-    map_df_1[['facility_name', 'longitude', 'latitude', 'address']]
-map_df_4[["street address"]] = map_df_1["num_x"] + ' ' + map_df_1["street_x"] + " Pittsburgh, PA "
-map_df_4=map_df_4[pd.notnull(map_df_4.longitude)]
-map_df_4=map_df_4[pd.notnull(map_df_4.facility_name)]
-
 #%%ProcessGeoFoodFacs.csv
 category_cd_list = [117, 118, 201, 202, 203, 211, 212, 250, 407]  # relevant categeory codes
 cutoff = datetime.datetime(2018, 1, 1)  # cutoff threshold for recency
@@ -181,7 +159,7 @@ geo_valid = geo_df[geo_df['longitude'].notna()]
 
 
 geo_valid = geo_valid.drop(columns=['id'])
-geo_valid = geo_valid.append(map_df_4,ignore_index = True)
+geo_valid = geo_valid.append(map_df,ignore_index = True)
 
 
 merge_df = pd.merge(final_map_df, geo_valid, on='street address', how='left')

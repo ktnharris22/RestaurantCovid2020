@@ -57,19 +57,21 @@ map_df_4["placard_desc"]=map_df_1["placard_desc"]
 map_df_4=map_df_4[pd.notnull(map_df_4.longitude)]
 map_df_4=map_df_4[pd.notnull(map_df_4.facility_name)]
 
-print(map_df.columns)
-print(map_df["longitude"])
-# print(len(map_df_4["facility_name"].unique()))
+# print(map_df.columns)
+# print(map_df["longitude"])
+# # print(len(map_df_4["facility_name"].unique()))
 
-geo_df_2 = pd.read_csv("geofoodfacilities.csv")
-geo_df_2 = geo_df_2[geo_df_2['city'] == 'Pittsburgh']
-geo_df_2[["street address"]] = geo_df_2["num"] + ' ' + geo_df_2["street"] + " Pittsburgh, PA "
-geo_df=pd.DataFrame()
-geo_df[['facility_name', 'longitude', 'latitude', 'address','street address']]=\
-    geo_df_2[['facility_name', 'longitude', 'latitude', 'address','street address']]
-geo_df = geo_df.append(map_df_4,ignore_index = True)
+# geo_df_2 = pd.read_csv("geofoodfacilities.csv")
+# geo_df_2 = geo_df_2[geo_df_2['city'] == 'Pittsburgh']
+# geo_df_2[["street address"]] = geo_df_2["num"] + ' ' + geo_df_2["street"] + " Pittsburgh, PA "
+# geo_df=pd.DataFrame()
+# geo_df[['facility_name', 'longitude', 'latitude', 'address','street address']]=\
+#     geo_df_2[['facility_name', 'longitude', 'latitude', 'address','street address']]
+# geo_df = geo_df.append(map_df_4,ignore_index = True)
 print(map_df["placard_desc"].unique())
-print(map_df[["facility_name"]][map_df["placard_desc"]=="Closure/No Entry"])
+print(map_df[["facility_name","latitude","longitude","placard_desc","inspect_dt",'purpose']][map_df["placard_desc"] == 'Closure/Imminent Hazard'])
+print(map_df[["facility_name","latitude","longitude","placard_desc","inspect_dt",'purpose']][map_df["facility_name"] == "Stuff'd Pierogi Bar"])
+print(map_df_4[["facility_name","latitude","longitude","placard_desc","inspect_dt",'purpose']][map_df_4["facility_name"] == "Stuff'd Pierogi Bar"])
 
 # geo_df_2["entireaddress"]=geo_df_2["facility_name"]+geo_df_2["num"]+geo_df_2["street"]+geo_df_2["city"]
 # geo_df_2["entireaddress"] = geo_df_2["entireaddress"].str.replace(" ","")
