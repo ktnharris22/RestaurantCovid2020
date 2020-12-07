@@ -113,7 +113,6 @@ def geolocateAddress(address):
 # address_df.to_csv('AddressesLongLat.csv', index=False, header=True)
 
 
-#--------JARA
 map_lat_long = pd.read_csv("AddressesLongLat.csv")
 map_lat_long = map_lat_long[map_lat_long['Longitude'] > -82]
 col = map_lat_long.Address.str.split(expand=True)
@@ -138,7 +137,6 @@ map_df_4[['facility_name', 'longitude', 'latitude', 'address']] = \
 map_df_4[["street address"]] = map_df_1["num_x"] + ' ' + map_df_1["street_x"] + " Pittsburgh, PA "
 map_df_4=map_df_4[pd.notnull(map_df_4.longitude)]
 map_df_4=map_df_4[pd.notnull(map_df_4.facility_name)]
-###-------JARA
 
 #%%ProcessGeoFoodFacs.csv
 category_cd_list = [117, 118, 201, 202, 203, 211, 212, 250, 407]  # relevant categeory codes
@@ -156,10 +154,9 @@ geo_df = geo_df.drop(columns=['num', 'street', 'city', 'state', 'municipal', 'ca
                               'bus_st_date', 'bus_cl_date', 'seat_count', 'noroom', 'sq_feet', 'status', 'placard_st', 'status', 'zip'])
 geo_valid = geo_df[geo_df['longitude'].notna()]
 
-#-------JARA
+
 geo_valid = geo_valid.drop(columns=['id'])
 geo_valid = geo_valid.append(map_df_4,ignore_index = True)
-#-------JARA
 
 
 merge_df = pd.merge(final_map_df, geo_valid, on='street address', how='left')
