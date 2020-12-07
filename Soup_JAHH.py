@@ -184,6 +184,37 @@ def parseData(beautifulSoupList):
                     df=df.append({'Name':lst[0], 'Address':lst[1], 'Zip':lst[2],'Boro':lst[3].strip('()'), 'Post Date':lst[4],'Remove Date':lst[5],'Violation':lst[6], 'Covid Situation':'No'},ignore_index=True)
     return df
 
+def cleanDate(df):
+    for i in range(len(df)):
+        if df.loc[i][0]=='S':
+            print(len(df.loc[i]))
+            df.loc[i]=df.loc[i][0:19]
+        elif df.loc[i][0]=='F':
+            df.loc[i]=df.loc[i][0:18]
+        elif df.loc[i][0]=='N':
+            df.loc[i]=df.loc[i][0:18]
+        elif df.loc[i][0]=='D':
+            df.loc[i]=df.loc[i][0:18]
+        elif df.loc[i][0]=='J':
+            if 'January' in df.loc[i]:
+                df.loc[i]=df.loc[i][0:17]
+            elif 'June'in df.loc[i]:
+                df.loc[i]=df.loc[i][0:14]
+            elif 'July' in df.loc[i]:
+                df.loc[i]=df.loc[i][0:14]
+        elif df.loc[i][0]=='A':
+            if 'April' in df.loc[i]:
+                df.loc[i]=df.loc[i][0:15]
+            elif 'August'in df.loc[i]:
+                df.loc[i]=df.loc[i][0:16]
+        elif df.loc[i][0]=='M':
+            if 'March' in df.loc[i]:
+                df.loc[i]=df.loc[i][0:15]
+            elif 'May'in df.loc[i]:
+                df.loc[i]=df.loc[i][0:13]
+        elif df.loc[i][0]=='O':
+                df.loc[i]=df.loc[i][0:17]
+    return df
 def getSoupDF():
     
     #Data URL 
