@@ -1,4 +1,4 @@
-Address,Latitude,Longitude,Neighborhood
+street_address,Latitude,Longitude,Neighborhood
 "1419 Potomac  Avenue Pittsburgh, PA ",40.403336,-80.040739,Banksville
 "689 Washington Road Pittsburgh, PA ",39.78373,-100.445882,
 "300 Mt Lebanon  Boulevard Pittsburgh, PA ",39.78373,-100.445882,
