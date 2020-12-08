@@ -185,35 +185,12 @@ def parseData(beautifulSoupList):
     return df
 
 def cleanDate(df):
+    p='[A-Z][a-z]+.\s[0-9]+,\s[0-9]+'
     for i in range(len(df)):
-        if df.loc[i][0]=='S':
-            print(len(df.loc[i]))
-            df.loc[i]=df.loc[i][0:19]
-        elif df.loc[i][0]=='F':
-            df.loc[i]=df.loc[i][0:18]
-        elif df.loc[i][0]=='N':
-            df.loc[i]=df.loc[i][0:18]
-        elif df.loc[i][0]=='D':
-            df.loc[i]=df.loc[i][0:18]
-        elif df.loc[i][0]=='J':
-            if 'January' in df.loc[i]:
-                df.loc[i]=df.loc[i][0:17]
-            elif 'June'in df.loc[i]:
-                df.loc[i]=df.loc[i][0:14]
-            elif 'July' in df.loc[i]:
-                df.loc[i]=df.loc[i][0:14]
-        elif df.loc[i][0]=='A':
-            if 'April' in df.loc[i]:
-                df.loc[i]=df.loc[i][0:15]
-            elif 'August'in df.loc[i]:
-                df.loc[i]=df.loc[i][0:16]
-        elif df.loc[i][0]=='M':
-            if 'March' in df.loc[i]:
-                df.loc[i]=df.loc[i][0:15]
-            elif 'May'in df.loc[i]:
-                df.loc[i]=df.loc[i][0:13]
-        elif df.loc[i][0]=='O':
-                df.loc[i]=df.loc[i][0:17]
+        if df.loc[i]=='PERMANENTLY CLOSED' or df.loc[i]=='NaN':
+            continue
+        else:
+            df.loc[i]=re.findall(p,df.loc[i])[0]
     return df
 def getSoupDF():
     
@@ -245,8 +222,9 @@ def getSoupDF():
     
 def main():
     
-    getSoupDF()
-    
+    a=getSoupDF()
+    return a
+
 if __name__ == '__main__': 
-    main()
+   f=main()
 
