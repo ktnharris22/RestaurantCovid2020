@@ -217,10 +217,10 @@ def getSoupDF():
         #print(accordionYearDataHeader)
         accordionYearList = accordionData.find_all('tr')#beautiful soup elements list
         header = pullHeader(accordionYearDataHeader)
-        print(header)
+        #print(header)
         #Append data frame to dtaframes of dataframes representing ...
         data = data.append(parseData(accordionYearList),ignore_index=True)
-        data['Placard_desc']=f['Placard_desc']=pd.Series([header]*len(data))
+        data['Placard_desc']=data['Placard_desc']=pd.Series([header]*len(data))
     #data['Post Date']=cleanDate(data['Post Date'])
     #data['Remove Date']=cleanDate(data['Remove Date'])
     #print(data)
