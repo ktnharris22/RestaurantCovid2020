@@ -256,7 +256,7 @@ def update_figure(chosen_type, input_address):
             mapbox=dict(
                 accesstoken=mapbox_access_token,
                 bearing=25,
-                style='mapbox://styles/jasrico/ckib1pi3b0bce1apg5k54oich',
+                style='streets', #'mapbox://styles/jasrico/ckib1pi3b0bce1apg5k54oich',
                 center=dict(
                     lat=lat,
                     lon=long
