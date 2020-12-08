@@ -185,9 +185,11 @@ def parseData(beautifulSoupList):
     return df
 
 def cleanDate(df):
-    p='[A-Z][a-z]+.\s[0-9]+,\s[0-9]+'
+    #p='[A-Z][a-z]+.\s[0-9]+,\s[0-9]+'
+    p='[A-Z][a-z]+.\s[0-9]+,.[0-9]+'
     for i in range(len(df)):
-        if df.loc[i]=='PERMANENTLY CLOSED' or df.loc[i]=='NaN':
+        print(i)
+        if df.loc[i]=='PERMANENTLY CLOSED' or df.loc[i]=='NaN' or df.loc[i]=='' :
             continue
         else:
             df.loc[i]=re.findall(p,df.loc[i])[0]
@@ -203,8 +205,8 @@ def getSoupDF():
     soup = BeautifulSoup(page.content, 'html.parser')
     
     #Keywords List to access Alleghany County Alert and Closure data (2018-2020)
-    #header=['One','Two','Three','Four','Five','Six','Seven']
-    header=['Six']
+    #header=['One','Two','Three','Four','Five','Six']
+    header=['Two']
     #instantiate primary dataframe to be passed to API data
     data=pd.DataFrame()
     
@@ -212,11 +214,16 @@ def getSoupDF():
     for item in header:
         accordionData = soup.find(id="collapse" + item)
         accordionYearDataHeader = soup.find(id="heading" + item)
+        #print(accordionYearDataHeader)
         accordionYearList = accordionData.find_all('tr')#beautiful soup elements list
         header = pullHeader(accordionYearDataHeader)
+        print(header)
         #Append data frame to dtaframes of dataframes representing ...
         data = data.append(parseData(accordionYearList),ignore_index=True)
-    print(data)
+        data['Placard_desc']=f['Placard_desc']=pd.Series([header]*len(data))
+    #data['Post Date']=cleanDate(data['Post Date'])
+    #data['Remove Date']=cleanDate(data['Remove Date'])
+    #print(data)
     return data
 
     
