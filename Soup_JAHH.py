@@ -194,6 +194,16 @@ def cleanDate(df):
         else:
             df.loc[i]=re.findall(p,df.loc[i])[0]
     return df
+
+def addPitt(df):
+    for i in range(len(df)):
+        if 'Pittsburgh, PA' in df['Address'].loc[i] or df['Address'].loc[i]=='NaN':
+            continue
+        else:
+            df['Address'].loc[i]=df['Address'].loc[i]+' Pittsburgh, PA'
+    return df
+    
+
 def getSoupDF():
     
     #Data URL 
@@ -206,7 +216,8 @@ def getSoupDF():
     
     #Keywords List to access Alleghany County Alert and Closure data (2018-2020)
     #header=['One','Two','Three','Four','Five','Six']
-    header=['Two']
+    header=['One','Two','Three','Five','Six']
+    #header=['Two']
     #instantiate primary dataframe to be passed to API data
     data=pd.DataFrame()
     
@@ -216,11 +227,13 @@ def getSoupDF():
         accordionYearDataHeader = soup.find(id="heading" + item)
         #print(accordionYearDataHeader)
         accordionYearList = accordionData.find_all('tr')#beautiful soup elements list
-        header = pullHeader(accordionYearDataHeader)
+        plc_desc = pullHeader(accordionYearDataHeader)
         #print(header)
         #Append data frame to dtaframes of dataframes representing ...
-        data = data.append(parseData(accordionYearList),ignore_index=True)
-        data['Placard_desc']=data['Placard_desc']=pd.Series([header]*len(data))
+        df=parseData(accordionYearList)
+        df['Placard_desc']=pd.Series([plc_desc]*len(df))
+        data = data.append(df,ignore_index=True)
+        data=addPitt(data)
     #data['Post Date']=cleanDate(data['Post Date'])
     #data['Remove Date']=cleanDate(data['Remove Date'])
     #print(data)
