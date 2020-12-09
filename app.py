@@ -7,51 +7,65 @@ from dash.dependencies import Input, Output
 import requests
 import datetime
 import plotly.graph_objs as go
+import Soup_JAHH as sp
 
-# %%Data Processing
-category_cd_list = [117, 118, 201, 202, 203, 211, 212, 250, 407]  # relevant categeory codes
-cutoff = datetime.datetime(2018, 1, 1)  # cutoff threshold for recency
+#%%Data Processing
 
-rest_inspect_df = pd.read_csv("RestaurantInspect.csv")
-rest_inspect_df = rest_inspect_df[rest_inspect_df['city'] == 'Pittsburgh']
-rest_inspect_df['inspect_dt'] = pd.to_datetime(rest_inspect_df['inspect_dt'], format='%m/%d/%Y')
+#ProcessRestaurantInspect.csv
+def processRestInspectCSV():
+    category_cd_list = [117, 118, 201, 202, 203, 211, 212, 250, 407]  # relevant categeory codes
+    cutoff = datetime.datetime(2018, 1, 1)  # cutoff threshold for recency
 
-rest_inspect_df = rest_inspect_df.loc[rest_inspect_df['inspect_dt'] >= cutoff]  # dataframe of recent inspections in Pittsburgh
-rest_inspect_df = rest_inspect_df.loc[rest_inspect_df['category_cd'].isin(category_cd_list)]  # dataframe fo recent inspection in Pittsburgh and of relevant categories
-rest_inspect_df['street_address'] = rest_inspect_df['num'] + ' ' + rest_inspect_df['street'] + ' Pittsburgh, PA ' #+ str(rest_inspect_df['zip'])
+    rest_inspect_df = pd.read_csv("RestaurantInspect.csv")
+    rest_inspect_df = rest_inspect_df[rest_inspect_df['city'] == 'Pittsburgh'] #only plotting restaurants in the city
+    rest_inspect_df['inspect_dt'] = pd.to_datetime(rest_inspect_df['inspect_dt'], format='%m/%d/%Y')
 
-rest_inspect_df = rest_inspect_df.drop(columns=['encounter', 'id', 'placard_st', 'bus_st_date', 'category_cd',
-                              'start_time', 'end_time', 'municipal', 'ispt_purpose', 'abrv',
-                              'reispt_cd', 'reispt_dt', 'num', 'street', 'status', 'zip'])
-rest_inspect_df.sort_values(by=['inspect_dt','street_address'], ascending=False, inplace=True) #sort dataframe so the most recent inspection of every restarurant is on top
-print(f'rest_inspect_df Before drop {rest_inspect_df.shape}')
-rest_inspect_df.drop_duplicates(subset=['street_address'], inplace=True, keep='first') #drop duplicates, and keep only the most recent inspection of a restaurant
-print(f'rest_inspect_df After drop {rest_inspect_df.shape}')
-rest_inspect_df.dropna(subset=['street_address'],inplace=True)
-print(f'rest_inspect_df After dropna {rest_inspect_df.shape}')
+    rest_inspect_df = rest_inspect_df.loc[rest_inspect_df['inspect_dt'] >= cutoff]  # dataframe of recent inspections in Pittsburgh
+    rest_inspect_df = rest_inspect_df.loc[rest_inspect_df['category_cd'].isin(category_cd_list)]  # dataframe fo recent inspection in Pittsburgh and of relevant categories
+    rest_inspect_df['street_address'] = rest_inspect_df['num'] + ' ' + rest_inspect_df['street'] + ' Pittsburgh, PA'
 
-#ProcessGeoFoodFacs.csv
-category_cd_list = [117, 118, 201, 202, 203, 211, 212, 250, 407]  # relevant categeory codes
-cutoff = datetime.datetime(2018, 1, 1)  # cutoff threshold for recency
+    rest_inspect_df = rest_inspect_df.drop(columns=['encounter', 'id', 'placard_st', 'bus_st_date', 'category_cd',
+                                  'start_time', 'end_time', 'municipal', 'ispt_purpose', 'abrv',
+                                  'reispt_cd', 'reispt_dt', 'num', 'street', 'status', 'zip', 'city', 'state'])
+    rest_inspect_df.sort_values(by=['inspect_dt','street_address'], ascending=False, inplace=True) #sort dataframe so the most recent inspection of every restarurant is on top
+    print(f'rest_inspect_df Before drop {rest_inspect_df.shape}')
+    rest_inspect_df.drop_duplicates(subset=['street_address'], inplace=True, keep='first') #drop duplicates, and keep only the most recent inspection of a restaurant
+    print(f'rest_inspect_df After drop_duplicates {rest_inspect_df.shape}')
+    rest_inspect_df.dropna(subset=['street_address'], inplace=True)
+    print(f'rest_inspect_df After dropna {rest_inspect_df.shape}')
+    return rest_inspect_df
 
-geo_df = pd.read_csv("geofoodfacilities.csv")
-geo_df = geo_df[geo_df['city'] == 'Pittsburgh']
-#geo_df['inspect_dt'] = pd.to_datetime(rest_inspect_df['inspect_dt'], format='%m/%d/%Y')
+rest_inspect_df = processRestInspectCSV()
+sp_df = sp.getSoupDF().drop(columns=['Zip', 'Boro', 'Remove Date', 'Covid Situation'])
+sp_df.rename(columns={'Address': 'street_address', 'Post Date': 'inspect_dt',
+                      'Name': 'facility_name', 'Violation': 'purpose'}, inplace=True)
+sp_df.drop_duplicates(subset=['street_address', 'facility_name'], keep='first', inplace=True)
+sp_df.dropna(subset=['street_address'], inplace=True)
 
-#geo_df = geo_df.loc[geo_df['inspect_dt'] >= cutoff]  # dataframe of recent inspections in Pittsburgh
-geo_df = geo_df.loc[geo_df['category_cd'].isin(category_cd_list)]  # dataframe fo recent inspection in Pittsburgh and of relevant categories
-geo_df['street_address'] = geo_df['num'] + ' ' + geo_df['street'] + ' Pittsburgh, PA ' #+ str(rest_inspect_df['zip'])
+#merge Soup df with rest_inspect_df
 
-geo_df = geo_df.drop(columns=['id', 'num', 'street', 'city', 'state', 'municipal', 'category_cd', 'description', 'p_code', 'fdo',
-                              'bus_st_date', 'bus_cl_date', 'seat_count', 'noroom', 'sq_feet', 'status', 'placard_st', 'status', 'zip'])
-print(f'geo_df before dropna {geo_df.shape}')
-geo_valid = geo_df.dropna()
-print(f'geo_df After dropna {geo_valid.shape}')
-geo_valid.drop_duplicates(subset=['street_address','longitude','latitude'], inplace=True, keep='first')
-print(f'geo_df After drop dups {geo_valid.shape}')
+#%%
+#ProcessGeoFoodFacs.csv to get LONG,LAT for Restaurants
+def processGeoFoodFacsCSV():
+    category_cd_list = [117, 118, 201, 202, 203, 211, 212, 250, 407]  # relevant categeory codes
 
-#Merge
-merge_df = pd.merge(rest_inspect_df, geo_valid, on=['street_address','facility_name'], how='left', validate="1:1")
+    geo_df = pd.read_csv("geofoodfacilities.csv")
+    geo_df = geo_df[geo_df['city'] == 'Pittsburgh']
+    geo_df = geo_df.loc[geo_df['category_cd'].isin(category_cd_list)]  # dataframe for food facilities in Pittsburgh of relevant categories
+    geo_df['street_address'] = geo_df['num'] + ' ' + geo_df['street'] + ' Pittsburgh, PA'
+
+    geo_df = geo_df.drop(columns=['id', 'num', 'street', 'city', 'state', 'municipal', 'category_cd', 'description', 'p_code', 'fdo',
+                                  'bus_st_date', 'bus_cl_date', 'seat_count', 'noroom', 'sq_feet', 'status', 'placard_st', 'status', 'zip'])
+    print(f'geo_df before dropna {geo_df.shape}')
+    geo_valid = geo_df.dropna()
+    print(f'geo_df After dropna {geo_valid.shape}')
+    geo_valid.drop_duplicates(subset=['street_address','longitude','latitude'], inplace=True, keep='first')
+    print(f'geo_df After drop dups {geo_valid.shape}')
+    return geo_valid
+
+geo_valid_df = processGeoFoodFacsCSV()
+#Merge geo_valid dataframe with rest_inspect_df to find coordinates of the restaurants
+merge_df = pd.merge(rest_inspect_df, geo_valid_df, on=['street_address','facility_name'], how='left', validate="1:1")
 merge_df = merge_df.set_index('street_address')
 
 print(f"After merge of geo_df and rest_df there are {merge_df['latitude'].isna().sum()} na coordinates")
@@ -73,12 +87,6 @@ for address in no_address_merge_df.index.to_numpy():
 print(f"After lookup there are {merge_df['latitude'].isna().sum()} na coordinates")
 
 #%%
-#uniq_facs = rest_inspect_df['facility_name'].unique()
-
-#map_df = pd.DataFrame(columns=['facility_name', 'street address', 'Inspection Date',
-                                     #'Inspection Status', 'Inspection Purpose',
-                                     #'Restaurant Type'])  ##description is restaurant type
-
 
 # Covid Status - has it been inspected for Covid? Did it pass or fail?
 # Inspection Status = placard_desc
@@ -88,9 +96,9 @@ print(f"After lookup there are {merge_df['latitude'].isna().sum()} na coordinate
 # You are here = Blue
 # Consumer Alert; Not Selected = Orange/Yellow;
 # Hover Text
-# facility name
-# date, purpose & result of last inspection
-# address
+    # facility name
+    # date, purpose & result of last inspection
+    # address
 Closed = ['Closure/Imminent Hazard', 'Inspected/Permit denied', 'Ordered To Close']
 ConsumerAlert = ['Consumer Alert', 'Not Selected']
 
@@ -113,7 +121,7 @@ colors = []
 HoverText = []
 for index, row in merge_df.iterrows():
     #print(index)
-    covid_inspect = row['purpose'].find('COVID') == 0
+    covid_inspect = row['purpose'].find('COVID') >= 0
     colorCode = findColorCode(row['placard_desc'], covid_inspect)
     hovText = f"Name: {row['facility_name']} <br>Address: {index} <br>Most Recent Inspection Date:{row['inspect_dt']} <br>Inspection Status:{row['placard_desc']} Inspection Purpose:{row['purpose']}"
     colors.append(colorCode)
@@ -124,42 +132,22 @@ merge_df['Hover Text'] = HoverText
 
 #%% find addresses with missing lat long
 
-def geolocateAddress(address):
-    add = address.replace(' ', '+')
-    key = '3btvRc91ydEdr1jO9cM86uNy29iT2kme'
-    url = f'http://open.mapquestapi.com/geocoding/v1/address?key={key}&location={add}'
-    resp = requests.get(url)
-    resp_json = resp.json()
-    resp_json = resp_json['results']
-    d = resp_json[0]['locations'][0]['latLng']
-    d['Neighborhood'] = resp_json[0]['locations'][0]['adminArea6']
-    return d
-# address_df = pd.DataFrame(columns=['street_address', 'Latitude', 'Longitude', 'Neighborhood'])
-# uniq_add = map_df['Address'].dropna().unique()
-# #address_df = address_df.append({'street_address': 'Address', 'Latitude': 'Latitude',
-# #                   'Longitude': 'Longitude', 'Neighborhood': 'Neighborhood'}, ignore_index=True)
-#
-# for add in uniq_add:
-#     d = geolocateAddress(add)
-#     address_df = address_df.append({'street_address': add, 'Latitude': d['lat'],
-#                                     'Longitude': d['lng'], 'Neighborhood': d['Neighborhood']}, ignore_index=True)
-#     print(add)
-# address_df.to_csv('AddressesLongLat.csv', index=False, header=True)
+
 
 
 
 #%%
-# App
+# Web App
 app = dash.Dash(__name__)
 
 blackbold = {'color': 'black', 'font-weight': 'bold'}
 
 app.layout = html.Div([
     # ---------------------------------------------------------------
-    # Map_legen + Borough_checklist + Recycling_type_checklist + Web_link + Map
+    # Map_legend + Restaurant_type_checklist + Map
     html.Div([
         html.Div([
-            # Map-legend
+            # Map-legend-- Different Colors for Different Rest Inspect statuses
             html.Ul([
                 html.Li("Open and Already Inspected for COVID", className='circle',
                         style={'background': '#0FFF00', 'color': 'black',
@@ -269,4 +257,5 @@ def update_figure(chosen_type, input_address):
 
 # #--------------------------------------------------------------
 if __name__ == '__main__':
-    app.run_server(debug=True)
+
+    app.run_server(debug=False)
