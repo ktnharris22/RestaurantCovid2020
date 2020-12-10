@@ -9,7 +9,8 @@ and web scraped the Allegheny County Health Department [website](https://www.all
 the help of beautiful soup to create a combined dataset of around 3,000 restaurants or food facilities in Pittsburgh.
 We used the Pandas and Plotly libraries to create various graphs to show some interesting patterns we were able to find in the data.
 We created the web app with Dash and Plotly. It runs a server locally and makes calls to the MapboxAPI to plot colored markers according to their restaurant inspection status. 
-The web app also allows you to enter you own address, and the map will adjust accordingly, updating the center of the map to the address you input. 
+The web app also allows you to enter you own address, and the map will adjust accordingly, updating the center of the map to the address you input.
+You can also filter on different restaurant types and statuses.  
 
 
 Instructions
