@@ -15,7 +15,7 @@ You can also filter on different restaurant types and statuses.
 
 Instructions
 -------------
-Please download all necessary CSVs which can be found in the CSV folder.
+Please make sure to download all necessary CSVs which can be found in the CSV folder.
 This project is dependent on the Dash, Plotly, and Pandas libraries. 
 If you do not have them you must install them via your preferred package manager.
 Example via pip:
