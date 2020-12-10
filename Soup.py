@@ -16,7 +16,7 @@ import numpy as np
 import re
 
 
-# Function that pulls the Issue Type from the Alleghany County Website header
+# Function that pulls the Issue Type from the Allegheny County Website header
 
 def pullHeader (soupHeaderData):
     #Types of Restaurant Notices
@@ -28,7 +28,7 @@ def pullHeader (soupHeaderData):
             header = keyWords[i].upper()
     return header
 
-#Function Searches for common typos iwithin the HTML data
+#Function Searches for common typos within the HTML data
 #Returns the correct tag to remedy data output issues later on in the code
 
 def preClean(stringList,tagList):
@@ -90,7 +90,7 @@ def cleanUp (stringData):
 #Function that takes in beautifulSouplList and parses data into a usable data struct for further processing
 def parseData(beautifulSoupList):
     #Creating dataframe to return the parsed Beautiful soup data
-    df=pd.DataFrame(columns = ['Name', 'Address', 'Zip','Boro', 'Post Date','Remove Date','Violation','Covid Situation'])
+    df=pd.DataFrame(columns = ['Name', 'Address', 'Zip', 'Boro', 'Post Date', 'Remove Date', 'Violation', 'COVID'])
     
     #creating data parsing tags for searching string
     headerKeyWord = 'NOTE: ' #checks for non-restuarant data
@@ -132,7 +132,6 @@ def parseData(beautifulSoupList):
     for i in range(len(beautifulSoupList)):
         rawParameter = str(beautifulSoupList[i])
         #checking to ensure that the rawparameter isn't heading information
-        print('\n')
         if rawParameter.find(headerKeyWord) == -1:
             lst=[]
             for j in range(len(tagParamList)): # tag here
@@ -178,17 +177,17 @@ def parseData(beautifulSoupList):
             #print(lst[0])
             #print(len(lst))
             if len(lst)==7:
-                if 'Covid' in lst[6] or 'COVID' in lst[6] or 'covid' in lst[6]:
-                    df=df.append({'Name':lst[0], 'Address':lst[1], 'Zip':lst[2],'Boro':lst[3].strip('()'), 'Post Date':lst[4],'Remove Date':lst[5],'Violation':lst[6], 'Covid Situation':'COVID-19'},ignore_index=True)
+                if 'Covid' in lst[6] or 'COVID' in lst[6] or 'covid' in lst[6] or 'Lack of face covering' in lst[6] or 'face coverings' in lst[6] or 'social distancing' in lst[6] or 'distancing' in lst[6]:
+                    df=df.append({'Name':lst[0], 'Address':lst[1], 'Zip':lst[2],'Boro':lst[3].strip('()'), 'Post Date':lst[4],'Remove Date':lst[5],'Violation':lst[6], 'COVID': True}, ignore_index=True)
                 else:
-                    df=df.append({'Name':lst[0], 'Address':lst[1], 'Zip':lst[2],'Boro':lst[3].strip('()'), 'Post Date':lst[4],'Remove Date':lst[5],'Violation':lst[6], 'Covid Situation':'No'},ignore_index=True)
+                    df=df.append({'Name':lst[0], 'Address':lst[1], 'Zip':lst[2],'Boro':lst[3].strip('()'), 'Post Date':lst[4],'Remove Date':lst[5],'Violation':lst[6], 'COVID': False}, ignore_index=True)
     return df
 
 def cleanDate(df):
     #p='[A-Z][a-z]+.\s[0-9]+,\s[0-9]+'
     p='[A-Z][a-z]+.\s[0-9]+,.[0-9]+'
     for i in range(len(df)):
-        print(i)
+        #print(i)
         if df.loc[i]=='PERMANENTLY CLOSED' or df.loc[i]=='NaN' or df.loc[i]=='' :
             continue
         else:
@@ -231,7 +230,7 @@ def getSoupDF():
         #print(header)
         #Append data frame to dtaframes of dataframes representing ...
         df=parseData(accordionYearList)
-        df['Placard_desc']=pd.Series([plc_desc]*len(df))
+        df['placard_desc']=pd.Series([plc_desc]*len(df))
         data = data.append(df,ignore_index=True)
         data=addPitt(data)
     #data['Post Date']=cleanDate(data['Post Date'])

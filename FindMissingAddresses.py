@@ -1,13 +1,17 @@
 import requests
+import pandas as pd
 
-def getMissingCoordinatesDF(addresList):
+
+def getMissingCoordinatesDF(addresList, nameOfCSVOUT):
+    address_df = pd.DataFrame()
     for add in addresList:
         d = geolocateAddress(add)
         address_df = address_df.append({'street_address': add, 'Latitude': d['lat'],
-                                    'Longitude': d['lng'], 'Neighborhood': d['Neighborhood']}, ignore_index=True)
-    #print(add)
-    address_df.to_csv('AddressesLongLat.csv', index=False, header=True)
+                                        'Longitude': d['lng'], 'Neighborhood': d['Neighborhood']}, ignore_index=True)
+    # print(add)
+    address_df.to_csv(f'{nameOfCSVOUT}.csv', index=False, header=True)
     return address_df
+
 
 def geolocateAddress(address):
     add = address.replace(' ', '+')
