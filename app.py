@@ -126,6 +126,7 @@ fillMissingCoords(merge_df)
     # date, purpose & result of last inspection
     # address
 
+#Defines the color of each restaurant based on its status
 def findColorCode(inspec_status, covid_inspect):
     Closed = ['Closure/Imminent Hazard', 'Inspected/Permit denied', 'Ordered To Close', 'CLOSURE']
     ConsumerAlert = ['Consumer Alert', 'Not Selected', 'ALERT']
@@ -144,12 +145,13 @@ def findColorCode(inspec_status, covid_inspect):
             color = '#800000'
     return color
 
+#Identifies if the inspection was related to COVID
 def checkCOVID(str):
     if str.find('COVID') >= 0 or str.find('face coverings') >= 0 or str.find('social distancing') >= 0 or str.find('distancing') >= 0:
         return True
     else:
         return False
-
+# Based on findColorCode and checkCOVID, adds each of the points/restaurants, relationg its color, name, address, last inspection information, status, and purpose
 def addMapColorCodeCols(df):
     colors = []
     HoverText = []
@@ -184,6 +186,7 @@ app = dash.Dash(__name__)
 blackbold = {'color': 'black', 'font-weight': 'bold'}
 
 #HTML App Layout
+#HTML Template used to displaying the map and interface with the user
 app.layout = html.Div([
     # ---------------------------------------------------------------
     # Map_legend + Restaurant_type_checklist + Map
