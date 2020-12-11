@@ -28,3 +28,17 @@ Once downloading all necessary packages and CSVs, you can run the program from t
 ```bash
 $ python app.py
 ```
+
+User experience
+---------------
+
+After running the App.py file in the terminal, you’ll go to a web browser to http://127.0.0.1:8050/.
+
+
+
+In the browser you’re going to find a color code that addresses each one of the possible conditions related to COVID situation of restaurants in Pittsburgh.
+
+Based on the color codes, the user can search around the map to locate over each point (that represents a restaurant), and see information about the restaurant. This will show the address, and information related to the latest inspection.
+
+The user can also filter by the kind of restaurant, and the status of the restaurant.
+
