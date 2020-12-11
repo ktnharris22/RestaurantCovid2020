@@ -31,8 +31,8 @@ def getStats():
 
 
     #dataframes for every breakdown I want to study
-    restaurant_df = pd.read_csv("PittsburghRestData.csv")  # full restaurants file
-    geocodes_df = pd.read_csv("geocodes.csv")  # full geocoded file
+    restaurant_df = pd.read_csv("CSV/RestaurantInspect.csv")  # full restaurants file
+    geocodes_df = pd.read_csv("CSV/geofoodfacilities.csv")  # full geocoded file
     covidabrvs = ['Covid-19 Assessment', 'Covid-19, Ini', 'Covid-19', 'Covid-19, Complaint']
     covid_df = restaurant_df.loc[restaurant_df['abrv'].isin(covidabrvs)]  # COVID dataframe
     pitt_df = restaurant_df.loc[restaurant_df['city'] == 'Pittsburgh']  # All Pittsburgh dataframe
@@ -346,6 +346,3 @@ def getStats():
     inspectTimeScatter()
     covidInspectTimeGraph(relevant_covid_df)
     whoIsComplainingGraph(unique_rel_df, testlist)
-
-
-getStats()
