@@ -8,6 +8,8 @@ import requests
 import datetime
 import plotly.graph_objs as go
 import Soup as sp
+import Stats as st
+
 #%%Data Processing
 
 #ProcessRestaurantInspect.csv
@@ -18,7 +20,7 @@ def processRestInspectCSV():
     rest_inspect_df = pd.read_csv("CSV/RestaurantInspect.csv")
     rest_inspect_df = rest_inspect_df[rest_inspect_df['city'] == 'Pittsburgh'] #only plotting restaurants in the city
     rest_inspect_df['inspect_dt'] = pd.to_datetime(rest_inspect_df['inspect_dt'], format='%m/%d/%Y')
-
+    rest_inspect_df['inspect_dt'] = rest_inspect_df['inspect_dt'].transform(lambda x: x.date())
     rest_inspect_df = rest_inspect_df.loc[rest_inspect_df['inspect_dt'] >= cutoff]  # dataframe of recent inspections in Pittsburgh
     rest_inspect_df = rest_inspect_df.loc[rest_inspect_df['category_cd'].isin(category_cd_list)]  # dataframe fo recent inspection in Pittsburgh and of relevant categories
     rest_inspect_df['street_address'] = rest_inspect_df['num'] + ' ' + rest_inspect_df['street'] + ' Pittsburgh, PA'
@@ -39,7 +41,7 @@ def processSoupDf():
     cutoff = datetime.datetime(2020, 10, 31)  # cutoff threshold for recency
     sp_df = sp.getSoupDF().drop(columns=['Zip', 'Boro', 'Remove Date'])
     sp_df['Post Date'] = pd.to_datetime(sp_df['Post Date'], format='%B %d, %Y', errors='coerce')
-    sp_df = sp_df.loc[sp_df['Post Date'] >= cutoff]  # dataframe of recent inspections in Pittsburgh
+    sp_df = sp_df.loc[sp_df['Post Date'] >= cutoff]  # dataframe of most recent inspections in Pittsburgh (everything else is in the CSV)
     sp_df['Post Date'] = sp_df['Post Date'].transform(lambda x: x.date())
     sp_df.rename(columns={'Address': 'street_address', 'Name': 'facility_name', 'Violation': 'purpose'}, inplace=True)
     sp_df.drop_duplicates(subset=['street_address', 'facility_name'], keep='first', inplace=True)
@@ -313,5 +315,5 @@ def update_figure(chosen_type, chosen_status, input_address):
 
 # #--------------------------------------------------------------
 if __name__ == '__main__':
-
+    st.getStats()
     app.run_server(debug=True)
