@@ -15,7 +15,7 @@ def processRestInspectCSV():
     category_cd_list = [117, 118, 201, 202, 203, 211, 212, 250, 407]  # relevant categeory codes
     cutoff = datetime.datetime(2018, 1, 1)  # cutoff threshold for recency
 
-    rest_inspect_df = pd.read_csv("RestaurantInspect.csv")
+    rest_inspect_df = pd.read_csv("CSV/RestaurantInspect.csv")
     rest_inspect_df = rest_inspect_df[rest_inspect_df['city'] == 'Pittsburgh'] #only plotting restaurants in the city
     rest_inspect_df['inspect_dt'] = pd.to_datetime(rest_inspect_df['inspect_dt'], format='%m/%d/%Y')
 
@@ -65,7 +65,7 @@ rest_inspect_df = addSoupRows(rest_inspect_df)
 def processGeoFoodFacsCSV():
     category_cd_list = [117, 118, 201, 202, 203, 211, 212, 250, 407]  # relevant categeory codes
 
-    geo_df = pd.read_csv("geofoodfacilities.csv")
+    geo_df = pd.read_csv("CSV/geofoodfacilities.csv")
     geo_df = geo_df[geo_df['city'] == 'Pittsburgh']
     geo_df = geo_df.loc[geo_df['category_cd'].isin(category_cd_list)]  # dataframe for food facilities in Pittsburgh of relevant categories
     geo_df['street_address'] = geo_df['num'] + ' ' + geo_df['street'] + ' Pittsburgh, PA'
@@ -96,7 +96,7 @@ merge_df = mergeGEOCSV(rest_inspect_df, geo_valid_df)
 #Fill missing coordinates with MapQuestDataFrame from CSV of previously queried locations
 def fillMissingCoords(merge_df):
     #gets coordinates for previoulsy looked up addresses
-    map_quest_df = pd.read_csv('AddressesLongLat.csv')
+    map_quest_df = pd.read_csv('CSV/AddressesLongLat.csv')
     map_quest_df = map_quest_df[map_quest_df['Neighborhood'].notna()]
     map_quest_df = map_quest_df.set_index('street_address')
 
