@@ -40,6 +40,7 @@ Once downloading all necessary packages and CSVs, you can run the program from t
 ```bash
 $ python app.py
 ```
+Note: You will be prompted if you want to see some cool graphs. If you answer yes, you must exit out of all the graphs before the server will start running. 
 
 User Experience
 ---------------
