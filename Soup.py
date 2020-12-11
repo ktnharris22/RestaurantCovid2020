@@ -9,10 +9,8 @@ Created on Thu Nov 26 17:23:51 2020
 #https://docs.google.com/document/d/1epSaWCh70pPPcMuK7Tz2fRdXuuODRg1mLiHChS-S4XQ/edit
 
 import requests
-import sys
 from bs4 import BeautifulSoup
 import pandas as pd
-import numpy as np
 import re
 
 
@@ -237,13 +235,4 @@ def getSoupDF():
     #data['Remove Date']=cleanDate(data['Remove Date'])
     #print(data)
     return data
-
-    
-def main():
-    
-    a=getSoupDF()
-    return a
-
-if __name__ == '__main__': 
-   f=main()
 
